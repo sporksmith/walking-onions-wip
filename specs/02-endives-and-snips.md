@@ -65,11 +65,12 @@ I've chosen CBOR because it's schema-free (you can parse it
 without knowing what it is), terse, dumpable as text, extensible,
 standardized, and very easy to parse and encode.
 
-We will choose to represent size-critical types as maps
-whose keys are short integers: this is slightly shorter in its
-encoding than string-based dictionaries.  (We could make things
-even shorter by using arrays, but that would have future-proofing
-implications.)
+We will choose to represent many size-critical types as maps whose
+keys are short integers: this is slightly shorter in its encoding
+than string-based dictionaries.  In some cases, we make types even
+shorter by using arrays rather than maps, but only when we are
+confident we will not have to make changes to the number of elements
+in the future.
 
 We'll use CDDL (defined in RFC 8610) to describe the data in a way
 that can be validated -- and hopefully, in a way that will make it
@@ -231,12 +232,12 @@ ring. (See section XXXX)
 
 This document doesn't give an algorithm for computing ENDIVEs from
 votes, and doesn't give an algorithm for extracting SNIPs from an ENDIVE.
-Those come later. (See section XXXXX)
+Those come later. (See section 04.)
 
 ## SNIPs
 
 Each SNIP has three pieces: the part of the SNIP that describes the
-router; the part of that describes the SNIPs place within an ENDIVE, and
+router, the part of that describes the SNIPs place within an ENDIVE, and
 the part that authenticates the whole SNIP.
 
 Why two _separate_ authenticated pieces?  Because one (the router
@@ -380,7 +381,10 @@ published time, etc.
       Padding   : 10,
       FlowCtrl  : 11,
     )
-    ProtoBitmask = uint / biguint
+    ; This type is limited to 64 bits, and that's fine.  If we ever
+    ; need a protocol version higher than 63, we should allocate a
+    ; new protoid.
+    ProtoBitmask = uint
 
     ; XXXX I've got to come back when I know what to do about exit
     ; policies.
@@ -392,8 +396,10 @@ published time, etc.
 The SNIPLocation type can encode where a SNIP is located with
 respect to one or more routing indices.  Note that a SNIPLocation
 does not need to be exhaustive: If a given IndexId is not listed for
-a given relay in one SNIP, clients should not infer that no other
-SNIPLocation for that relay exists with that index.
+a given relay in one SNIP, it might exist in another SNIP. Clients
+should not infer that the absence of an index in one SNIPLocation
+for a relay means that no SNIPLocation with that index exists for
+the relay.
 
 
     ; SNIPLocation: we're using a map here because it's natural
@@ -401,23 +407,28 @@ SNIPLocation for that relay exists with that index.
     SNIPLocation = {
         ; A SNIP's location is given as a ranges of values in different
         ; indices.
-        * IndexId => IndexRange,
+        * IndexId => IndexRange / ExtensionIndex,
 
         ; For experimental and extension use -- denotes other kinds of
         ; indices.
-        * tstr => any,
+        * tstr => IndexRange / ExtensionIndex,
     }
 
     ; We'll define the different index ranges as we go on with
     ; these specifications.
     IndexId = int
 
-    ; An index range extends from a minimum to a maximum value.  These
-    ; ranges are _inclusive_ on both sides.  It is not allowed for 'hi'
-    ; to be less than 'lo'.  A "nil" value indicates an empty
-    ; range, which would not ordinarily be included.
+    ; An index range extends from a minimum to a maximum value.
+    ; These ranges are _inclusive_ on both sides.  If 'hi' is less
+    ; than 'lo', then this index "wraps around" the end of the ring.
+    ; A "nil" value indicates an empty range, which would not
+    ; ordinarily be included.
     IndexRange = [ lo: IndexPos,
                    hi: IndexPos ] / nil
+
+    ; An ExtensionIndex is reserved for future use; current clients
+    ; will not understand it and current ENDIVEs will not contain it.
+    ExtensionIndex = any
 
     ; For most indices, the ranges are encoded as 4-byte integers.  But for
     ; hsdir rings, they are binary strings.
@@ -481,13 +492,14 @@ validated as described in "Design overview: Authentication" above.
         ; at which this object should be accepted.
         pre-valid : uint32,
 
-        ; Value to add to "published" in order to find the last at which
-        ; this object should be accepted.  The lifetime of an object is
-        ; therefore equal to "(post-valid + pre-valid)".
+        ; Value to add to "published" in order to find the last
+        ; second at which this object should be accepted.  The
+        ; lifetime of an object is therefore equal to "(post-valid +
+        ; pre-valid)".
         post-valid : uint32,
     )
 
-    ; A Lifespan is just the fields of Lifespan, encoded as a list.
+    ; A Lifespan is just the fields of LifespanInfo, encoded as a list.
     Lifespan = [ LifespanInfo ]
 
     ; One signature on a SNIP or ENDIVE.  If the signature is a threshold
@@ -527,12 +539,12 @@ the tree.  Similarly, the ENDIVEs do not include raw indices, but instead
 include a set of bandwidths that can be combined into the index values --
 these changes less frequently, and therefore are more diff friendly.
 
-Note also that this format has more "wasted bytes" than SNIPs do: unlike when
-transmitting SNIPs, we can usefully compress ENDIVEs with gzip,
-lzma2, or so on.
+Note also that this format has more "wasted bytes" than SNIPs
+do. Unlike SNIPs, ENDIVEs are large enough to benefit from
+compression with with gzip, lzma2, or so on.
 
 This section does not fully specify how to construct SNIPs from an ENDIVE;
-for the full algorithm, see section XXXX.
+for the full algorithm, see section 04.
 
     ; ENDIVEs are also sent as CBOR.
     ENDIVE = [
@@ -545,32 +557,29 @@ for the full algorithm, see section XXXX.
         body: encoded-cbor .cbor ENDIVEContent,
     ]
 
-    ; XXXX do we want to do anything equivalent to current authority key
-    ; XXXX certs, or does that go into a root document?
-
-    ENDIVESignature = [
+    ENDIVESignature = {
         ; The actual signatures on the endive. A multisignature is the
         ; likeliest format here.
-        [ + SingleSig ],
+        endive: [ + SingleSig ],
 
         ; Lifespan information.  As with SNIPs, this is included as part
         ; of the input to the hash algorithm for the signature.
         ; Note that the lifespan of an ENDIVE is likely to be a subset
         ; of the lifespan of its SNIPs.
-        Lifespan,
+        endive_lifespan: Lifespan,
 
         ; Signatures across SNIPs, at some level of the Merkle tree.  Note
         ; that these signatures are not themselves signed -- having them
         ; signed would take another step in the voting algorithm.
-        DetachedSNIPSignatures,
+        snip_sigs : DetachedSNIPSignatures,
 
         ; Signatures across the RootDocument pieces.  Note that as with the
         ; DetachedSNIPSignatures, these signature are not themselves signed.
-        RootDocSignature,
+        root_doc: RootDocSignature,
 
         ; extensions for later use. These are not signed.
-        ? extensions : { * any => any },
-    ]
+        * tstr => any,
+    }
 
     ; A list of single signatures or a list of multisignatures. This
     ; list must have 2^signature-depth elements.
@@ -580,7 +589,7 @@ for the full algorithm, see section XXXX.
     ENDIVEContent = {
 
         ; Describes how to interpret the signatures over the SNIPs in this
-        ; ENDIVE. See XXX for the full algorithm.
+        ; ENDIVE. See section 04 for the full algorithm.
         sig_params : {
             ; When should we say that the signatures are valid?
             lifespan : Lifespan,
@@ -687,7 +696,7 @@ for the full algorithm, see section XXXX.
         type: Indextype_Weighted,
         ; This index is constructed by assigning a weight to each relay,
         ; and then normalizing those weights. See algorithm below in section
-        ; XXX.
+        ; 04.
         ; Limiting bandwidth weights to uint32 makes reconstruction algorithms
         ; much easier.
         index_weights: [ * uint32 ],
@@ -771,7 +780,7 @@ parameters, recommended versions, authority certificates, and so on.
     RootDocSignature = [
        ; Multisignature or threshold signature of the concatenation
        ; of the two digests below.
-       [ + SingleSig / MultiSig ],
+       SingleSig / Multisig,
 
        ; Lifespan information.  As with SNIPs, this is included as part
        ; of the input to the hash algorithm for the signature.
@@ -884,13 +893,15 @@ and apply it.
     BinaryDiff = {
         ; This is version 1.
         v : 1,
-        ; optionally, a diff can say what different digests
+        ; Optionally, a diff can say what different digests
         ; of the document should be before and after it is applied.
-        ? digest : { DigestAlgorithm =>
+        ; If there is more than one entry, parties MAY check one or
+        ; all of them.
+        ? digest : { * DigestAlgorithm =>
                          [ pre : Digest,
                            post : Digest ]},
 
-        ; optionally, a diff can give some information to identify
+        ; Optionally, a diff can give some information to identify
         ; which document it applies to, and what document you get
         ; from applying it.  These might be a tuple of a document type
         ; and a publication type.
@@ -910,7 +921,7 @@ and apply it.
         OrigBytesCmdId,
         ; Range of bytes to copy from the original document.
         ; Ranges include their starting byte.
-        start : uint, ; XXXX we could have this be relative; would it help?
+        start : uint,  ; XXXX we could have this be relative; would it help?
         length : uint,
     ]
     ; XXXX would it make sense to have relative/absolute versions of the
@@ -947,13 +958,15 @@ Generating a binary diff can be trickier, and is not specified here.
 There are several generic algorithms out there for making binary diffs
 between arbitrary byte sequences. Since these are complex, I recommend a
 chunk-based CBOR-aware algorithm, using each CBOR item in a similar way
-to that in which our current line-oriented code uses lines.  (See
+to the way in which our current line-oriented code uses lines.  When
+encountering a bstr tagged with "encoded-cbor", the diff algorithm
+should look inside it to find more cbor chunks. (See
 example-code/cbor_diff.py for an example of doing this with Python's
 difflib.)
 
-However, the diff format above should work equally well no matter what
-diff algorithm is used.
-
+The diff format above should work equally well no matter what
+diff algorithm is used, so we have room to move to other algorithms
+in the future if needed.
 
 ## Storage analysis
 
@@ -982,14 +995,14 @@ bytes long.
      H_leaf(PATH, LIFESPAN, NONCE, ITEM) =
         H( PREFIX(LEAF_C, LIFESPAN, NONCE) ||
            U64(PATH) ||
-           U64(bits(path))
-           || ITEM )
+           U64(bits(path)) ||
+           ITEM )
 
      H_node(PATH, LIFESPAN, NONCE, ITEM) =
-       H( PREFIX(NODE_C, LIFESPAN, NONCE) ||
-          U64(PATH) ||
-          U64(bits(PATH)) ||
-          ITEM )
+        H( PREFIX(NODE_C, LIFESPAN, NONCE) ||
+           U64(PATH) ||
+           U64(bits(PATH)) ||
+           ITEM )
 
      PREFIX(leafcode, lifespan, nonce) =
           U64(leafcode) ||
@@ -1005,7 +1018,7 @@ bytes long.
      OTHER_C = 0x7365706172617465
 
      U64(n) -- N encoded as a big-endian 64-bit number.
-     Z(n) -- N zero bytes.
+     Z(n) -- N bytes with value zero.
      len(b) -- the number of bytes in a byte-string b.
      bits(b) -- the number of bits in a bit-string b.
 

@@ -16,17 +16,17 @@ Draft ENDIVE design (done)
 
 Draft ENDIVE reconstruction. (done)
 
-==============================
-
-NEED TO DIVIDE THESE BY TWO OR ELSE I DON'T FINISH IN MARCH?
-
-
 Draft Authority operation (1 day)
 
 Draft ENDIVE transfer (1 day)
 Draft Extending circuits (1 day)
 
 Draft : root document????? (0.5 day)
+
+
+==============================
+
+NEED TO DIVIDE THESE BY TWO OR ELSE I DON'T FINISH IN MARCH?
 
 Draft Guards and Bridges (1 day)
 
@@ -38,5 +38,6 @@ Draft hidden services (1 day)
 
 Draft performance analysis.
 
-This takes up too much of mar/april at current rates.  Need to assume faster
-rate than above or dedicate larger amounts of time. ^^^^
+Return to authority operation and index expansion.
+
+Edit, revise, improve.
