@@ -220,7 +220,7 @@ In other words, a SimpleVal is either an non-compound base value, or is
 a tuple of such values.
 
     ; We encode these operations as:
-    SimpleOp = IntMedianOp / ModeOp / FirstWithOp / LastWithOp /
+    SimpleOp = MedianOp / ModeOp / ThresholdOp /
         BitThresholdOp / NoneOp
 
 #### Median
@@ -269,16 +269,16 @@ it. Break ties in favor of lower values if `BREAK_TIES_LOW` is true,
 and in favor of higher values of `BREAK_TIES_LOW` is false.
 (Perform comparisons in canonical cbor order.)
 
-#### FirstThreshold
+#### Threshold
 
 _Parameters_: `MIN_COUNT` (an integer), `BREAK_MULTI_LOW` (a boolean),
 `TYPE` (a SimpleType)
 
     ; Encdoding
-    FirstThresholdOp = { op : "FirstThreshold",
-                         min_count : IntOpArgument,
-                         multi_low: bool,
-                         type : SimpleType
+    ThresholdOp = { op : "Threshold",
+                    min_count : IntOpArgument,
+                    multi_low: bool,
+                    type : SimpleType
     }
 
 Discard all votes that are not of the specified `TYPE`.  Sort in
