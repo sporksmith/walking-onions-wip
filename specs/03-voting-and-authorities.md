@@ -124,7 +124,6 @@ In some cases the integers are constant, but in
 When we encode these constants, we encode them as short strings
 rather than as integers.
 
-
 The following constants are defined:
 
 `N_AUTH` -- the total number of authorities, including those whose votes
@@ -140,19 +139,22 @@ Necessarily, `N_FIELD` <= `N_PRESENT` <= `N_AUTH` -- you can't vote
 on a field unless you've cast a vote, and you can't cast a vote
 unless you're an authority.
 
+In the definitions below, `//` denotes the truncating integer division
+operation, as implemented with `/` in C.
+
 `QUORUM_AUTH` -- The lowest integer that is greater than half of
-`N_AUTH`.  Equivalent to CEIL( (N_AUTH+1)/2 ).
+`N_AUTH`.  Equivalent to `N_AUTH // 2 + 1`.
 
 `QUORUM_PRESENT` -- The lowest integer that is greater than half of
-`N_PRESENT`.  Equivalent to CEIL( (N_PRESENT+1)/2 ).
+`N_PRESENT`.  Equivalent to `N_PRESENT // 2 + 1`.
 
 `QUORUM_FIELD` -- The lowest integer that is greater than half of
-`N_FIELD`.  Equivalent to CEIL( (N_PRESENT+1)/2 ).
+`N_FIELD`.  Equivalent to `N_FIELD // 2 + 1`.
 
 We define `SUPERQUORUM_`..., variants of these fields as well, based
 on the lowest integer that is greater than 2/3 majority of the
 underlying field.  `SUPERQUORUM_x` is thus equivalent to
-CEIL( (N_x * 2 + 1) / 3 )
+`(N_x * 2) // 3 + 1`.
 
     ; We need to encode these arguments; we do so as short strings.
     IntOpArgument = uint / "auth" / "present" / "field" /
@@ -161,10 +163,6 @@ CEIL( (N_x * 2 + 1) / 3 )
 
 > I had thought of using negative integers here to encode these
 > special constants, but that seems too error-prone.
-
-> Alternatively, we could formulate QUORUM_x as CEIL( x / 2 + epsilon )
-> and SUPERQUORUM_x as CEIL( x * 2/3 + epsilon), for epsilon being a
-> tiny positive number.  Is that better?
 
 ### Producing consensus on a field
 
