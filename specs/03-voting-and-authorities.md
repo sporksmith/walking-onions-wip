@@ -250,8 +250,8 @@ _Parameters_: `MIN_VOTES` (an integer), `BREAK_EVEN_LOW` (a boolean),
 
     ; Encoding:
     MedianOp = { op : "Median",
-                 min_vote : IntOpArgument,
-                 even_low : bool,
+                 ? min_vote : IntOpArgument,  ; Default is 1.
+                 ? even_low : bool,           ; Default is true.
                  type : SimpleType  }
 
 Discard all votes that are not of the specified `TYPE`. If there are
@@ -274,8 +274,8 @@ _Parameters_: `MIN_COUNT` (an integer), `BREAK_TIES_LOW` (a boolean),
 
     ; Encoding:
     ModeOp = { op : "Mode",
-               min_count : IntOpArgument,
-               tie_low : bool,
+               ? min_count : IntOpArgument,   ; Default 1.
+               ? tie_low : bool,              ; Default true.
                type : SimpleType
     }
 
@@ -398,10 +398,13 @@ Encoding:
     ; MapJoin operation encoding
     MapJoinOp = {
        op : "MapJoin"
-       key_min_count : IntOpArgument,
+       ? key_min_count : IntOpArgument, ; Default 1.
        key_type : SimpleType,
        item_op : ListOp / SimpleOp
     }
+
+> XXXX Explain that  key_min_count is relevant in cases like when
+> key_min_count==1 but min count in item_op is more like qfield.
 
 First, discard all votes that are not maps.  Then consider the set
 of keys from each vote as if they were a list, and apply
@@ -633,9 +636,9 @@ are to be formatted.
        ; Proposed time till next vote.
        voting-interval : uint,
        ; proposed lifetime for the SNIPs and endives
-       snip_lifetime: Lifespan,
+       snip-lifetime: Lifespan,
        ; proposed lifetime for client root document
-       c_root_lifetime : Lifespan,
+       c-root-lifetime : Lifespan,
        ; proposed lifetime for server root document
        s_root_lifetime : Lifespan,
        ; Current and previous shared-random values
@@ -690,7 +693,7 @@ are to be formatted.
         ; Tuple of published-time and descriptor digest.
         ? desc : [ uint , bstr ],
         ; What flags are assigned to this relay?
-        ? flags : [ *tstr ],
+        ? flags : { *tstr=>bool },
         ; self-declared bandwidth.
         ? bw : uint,
         ; measured bandwidth.
@@ -700,7 +703,8 @@ are to be formatted.
     RelaySNIPInfo = SNIPRouterData
 
     RelayLegacyInfo = {
-       ? mds : [ *Microdesc ]
+       ? mds : [ *Microdesc ],
+       ? sha1-desc : bstr,
     }
 
     Microdesc = [
