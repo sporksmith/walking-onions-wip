@@ -171,6 +171,13 @@ underlying field.  `SUPERQUORUM_x` is thus equivalent to
          "qauth" / "qpresent" / "qfield" /
          "sqauth" / "sqpresent" / "sqfield"
 
+No IntOpArgument may be greater than AUTH.  If an IntOpArgument is
+given as an integer, and that integer is greater than AUTH, then it
+is treated as if it were AUTH.
+
+> This rule lets us say things like "at least 3 authorities must
+> vote on x...if there are 3 authorities."
+
 ### Producing consensus on a field
 
 Each voting operation will either produce a CBOR output, or produce
@@ -296,8 +303,8 @@ _Parameters_: `MIN_COUNT` (an integer), `BREAK_MULTI_LOW` (a boolean),
 
     ; Encdoding
     ThresholdOp = { op : "Threshold",
-                    min_count : IntOpArgument,
-                    multi_low: bool,
+                    min_count : IntOpArgument,  ; No default.
+                    ? multi_low: bool,          ; Default true.
                     type : SimpleType
     }
 
@@ -315,7 +322,7 @@ Parameters: `MIN_COUNT` (an integer >= 1)
 
     ; Encoding
     BitThresholdOp = { op : "BitThreshold",
-                       min_count : IntOpArgument,
+                       min_count : IntOpArgument, ; No default.
     }
 
 These are usually not needed, but are quite useful for
@@ -475,7 +482,7 @@ Encoding
     ; This item is "derived from" some other field.
     DerivedItemOp = {
         op : "DerivedFrom",
-        fields : [ +SourceField ]
+        fields : [ +SourceField ],
         rule : SimpleOp
     }
 
