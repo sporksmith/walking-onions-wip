@@ -796,7 +796,6 @@ parameters, recommended versions, authority certificates, and so on.
        s_digest : bstr,
     ]
 
-
     ClientRootDocument = {
        params : NetParams,
        ; List of certificates for all the voters.  These
@@ -809,7 +808,7 @@ parameters, recommended versions, authority certificates, and so on.
        ; As in recommended-client-protocols in dir-spec.txt
        ? recommend-protos: ProtoVersions,
        ; As in required-client-protocols in dir-spec.txt
-       ? require-versions: ProtoVersions,
+       ? require-protos: ProtoVersions,
 
        ; For future extensions.
        * tstr => any,

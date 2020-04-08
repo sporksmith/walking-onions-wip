@@ -463,9 +463,10 @@ This operation always reaches a consensus, even if it is an empty map.
 
 #### DerivedFromField
 
-This operation can only occur within a StructJoinOp operation. It indicates
-that one field should have been derived from another.  It can be used, for
-example, to say that a relay's version is "derived from" a relay's descriptor
+This operation can only occur within a StructJoinOp operation (or a
+semantically similar SectionRules). It indicates that one field
+should have been derived from another.  It can be used, for example,
+to say that a relay's version is "derived from" a relay's descriptor
 digest.
 
 Unlike other operations, this one depends on the entire consensus (as
@@ -500,15 +501,20 @@ Encoding
 
 To compute a consensus with this operation, first locate each field described
 in the SourceField entry in each VoteDocument (if present), and in the
-consensus computed so far.  If there is no such field in the consensus, then
+consensus computed so far.  If there is no such field in the
+consensus or if it has not been computed yet, then
 this operation produces "no consensus".  Otherwise, discard the VoteDocuments
 that do not have the same value for the field as the consensus, and their
 corresponding votes for this field.  Do this for every listed field.
 
 At this point, we have a set of votes for this field's value that all come
-from VoteDocuments that describe the same value for the source field.  Apply
+from VoteDocuments that describe the same value for the source field(s).  Apply
 the `RULE` operation to those votes in order to give the result for this
 voting operation.
+
+The DerivedFromField members in a SectionRules or a StructJoinOp
+should be computed _after_ the other members, so that they can refer
+to those members themselves.
 
 ### Voting on document sections
 
@@ -531,10 +537,11 @@ tagged with an "op":
 
 To merge a set of SectionRules together, proceed as follows. For each
 key, consider whether at least QUORUM_AUTH authorities have voted voted the
-same StructItemOp.  If so, that StructItemOp is the resulting operation
-for this key.  Otherwise, there is no entry for this key.
+same StructItemOp for that key.  If so, that StructItemOp is the
+resulting operation for this key.  Otherwise, there is no entry for this key.
 
-Do the same for the "nil" StructItemOp; use the result as the `UNKNOWN_RULE`.
+Do the same for the "nil" StructItemOp; use the result as the
+`UNKNOWN_RULE`.
 
 Note that this merging operation is *not* recursive.
 
@@ -543,11 +550,6 @@ Note that this merging operation is *not* recursive.
 A vote is a signed document containing a number of sections; each
 section corresponds roughly to a section of another document, a
 description of how the vote is to be conducted, or both.
-
-When a items in a vote corresponds to an element in a legacy vote,
-that item is said to be a "legacy item".  Legacy items are in a
-limited format, and contain a small set of tags indicating how they
-are to be formatted.
 
     ; VoteDocument is a top-level signed vote.
     VoteDocument = [
@@ -585,8 +587,10 @@ are to be formatted.
         client-root : RootSection .within VoteableSection,
         ; Fields that appear in the server root document.
         server-root : RootSection .within VoteableSection,
+
         ; Information about each relay.
         relays : RelaySection,
+
         ; Information about indices.
         indices : IndexSection,
 
@@ -635,6 +639,29 @@ are to be formatted.
        VoteableStructKey => VoteableValue,
     }
 
+    ; A NoteSection is used to convey information about the voter and
+    ; its vote that is not actually voted on.
+    NoteSection = {
+       ; Information about the voter itself
+       voter : VoterSection,
+       ; Information that the voter used when assigning flags.
+       ? flag-thresholds : { tstr => any },
+       ; Headers from the bandwidth file that the
+       ? bw-file-headers : {tstr => any },
+       ? shared-rand-commit : SRCommit,
+       * VoteableStructKey => VoteableValue,
+    }
+
+    ; Shared random commitment; fields are as for the current
+    ; shared-random-commit fields.
+    SRCommit = {
+       ver : uint,
+       alg : DigestAlgorithm,
+       ident : bstr,
+       commit : bstr,
+       ? reveal : bstr
+    }
+
     ; the meta-section is voted on, but does not appear in the ENDIVE.
     MetaSection = {
        ; Seconds to allocate for voting and distributing signatures
@@ -655,40 +682,21 @@ are to be formatted.
        * VoteableStructKey => VoteableValue,
     };
 
-    SRCommit = [
-       ver : uint,
-       alg : tstr,
-       ident : bstr,
-       commit : bstr,
-       ? reveal : bstr
-    ]
-
+    ; A RootSection will be made into a RootDocument after voting;
+    ; the fields are analogous.
     RootSection = {
-       ? versions : [ * tstr ],
+       ? recommend-vversions : [ * tstr ],
        ? require-protos : ProtoVersions,
        ? recommend-protos : ProtoVersions,
        ? params : NetParams,
        * VoteableStructKey => VoteableValue,
     }
-
-    ; A NoteSection is used to convey information about the voter and
-    ; its vote that is not actually voted on.
-    NoteSection = {
-       ; Information about the voter itself
-       voter : VoterSection,
-       ; Information that the voter used when assigning flags.
-       ? flag-thresholds : { tstr => any },
-       ; Headers from the bandwidth file that the
-       ? bw-file-headers : {tstr => any },
-       ? shared-rand-commit : SRCommit,
-       * VoteableStructKey => VoteableValue,
-    }
-
     RelaySection = {
-       ; Mapping from key or key ID to relay information.
+       ; Mapping from relay identity key (or digest) to relay information.
        * bstr => RelayInfo,
     }
 
+    ; A RelayInfo is a vote about a single relay.
     RelayInfo = {
        meta : RelayMetaInfo .within VoteableSection,
        snip : RelaySNIPInfo .within VoteableSection,
@@ -699,21 +707,34 @@ are to be formatted.
     RelayMetaInfo = {
         ; Tuple of published-time and descriptor digest.
         ? desc : [ uint , bstr ],
-        ; What flags are assigned to this relay?
+        ; What flags are assigned to this relay?  We use a
+        ; string->value encoding here so that only the authorities
+        ; who have an opinion on the status of a flag for a relay need
+        ; to vote yes or no on it.
         ? flags : { *tstr=>bool },
-        ; self-declared bandwidth.
+        ; The relay's self-declared bandwidth.
         ? bw : uint,
-        ; measured bandwidth.
+        ; The relay's measured bandwidth.
         ? mbw : uint,
+        ; The fingerprint of the relay's RSA identity key.
+        ? rsa-id : RSAIdentityFingerprint
     }
-    ; SNIP information can just be voted on.
+    ; SNIP information can just be voted on directly; the formats
+    ; are the same.
     RelaySNIPInfo = SNIPRouterData
 
+    ; Legacy information is used to build legacy consensuses, but
+    ; not actually required by walking onions clients.
     RelayLegacyInfo = {
+       ; Mapping from consensus version to microdescriptor digests
+       ; and microdescriptors.
        ? mds : [ *Microdesc ],
+       ; Sha1 descriptor digest.  For use in "ns" flavored consensus.
        ? sha1-desc : bstr,
     }
 
+    ; Microdescriptor votes now include the digest AND the
+    ; microdescriptor-- see note.
     Microdesc = [
        low : uint,
        high : uint,
@@ -726,6 +747,8 @@ are to be formatted.
 
     ; ==========
 
+    ; The VotingRules field explains how to vote on the members of
+    ; each section
     VotingRules = {
         meta : SectionRules,
         root : SectionRules,
@@ -733,14 +756,11 @@ are to be formatted.
         indices : SectionRules,
     }
 
-    VotingOp = MapOp / ListOp / SimpleOp / UnknownOp
-
-    UnknownOp = {
-        op : tstr,
-        * tstr => any
-    }
-
+    ; The RelayRules object explains the rules that apply to each
+    ; part of a RelayInfo.  A key will appear in the consensus if it
+    ; has been listed by at least key_min_count authorities.
     RelayRules = {
+        key_min_count : IntOpArgument,
         meta : SectionRules,
         snip : SectionRules,
         legacy : SectionRules,
@@ -759,16 +779,16 @@ should take the one that is published more recently.
 
 Next, the authorites determine the consensus method as they do today,
 using the field "consensus-method".  This can also be expressed as
-the voting operation
-`LastWith[SUPERQUORUM_PRESENT, uint]`.
+the voting operation `Threshold[SUPERQUORUM_PRESENT, false, uint]`.
 
 If there is no consensus for the consensus-method, then voting stops
 without having produced a consensus.
 
-Note that unlike the current voting algorithm, the consensus method
-does not determine the way to vote on every individual field: that
-aspect of voting is controlled by the voting-rules.  Instead, the
-consensus-method changes other aspects of this voting, such as:
+Note that in contrast with its behavior in the current voting algorithm, the
+consensus method does not determine the way to vote on every
+individual field: that aspect of voting is controlled by the
+voting-rules.  Instead, the consensus-method changes other aspects
+of this voting, such as:
 
     * Adding, removing, or changing the semantics of voting
       operations.
@@ -791,21 +811,15 @@ ENDIVE and a legacy consensus, as in "Computing an Endive" and
 "Computing a legacy consensus" below.
 
 To vote on a single VotingSection, find the corresponding
-SectionRules objects in the VotingRules of this votes.  For every
-key in the SectionRules, if at least QUORUM_AUTH authorities list
-the same operation for it, then use that operation to calculate the
-consensus for the value, and associate the key with the value.
-Otherwise, if at least `QUORUM_AUTH` authorities list the same
-operation for `nil`, then use that operation instead.  Otherwise, do
-not include the key in the consensus.
-
+SectionRules objects in the VotingRules of this votes, and apply it
+as described above in "Voting on document sections".
 
 ## If an older consensus method is negotiated (Transitional)
 
 The `legacy-vote` field in the vote document contains an older (v3,
 text-style) consensus vote, and is used when an older consensus
 method is negotiated.  The legacy-vote is encoded by splitting it
-into pieces, to help with diff calculation.  Authorities MAY split at
+into pieces, to help with CBOR diff calculation.  Authorities MAY split at
 line boundaries, space boundaries, or anywhere that will help with
 diffs.   To reconstruct the legacy vote, concatenate the members of
 `legacy-vote` in order.  The resulting string MUST validate
@@ -815,8 +829,8 @@ If a legacy vote is present, then authorities SHOULD include the
 same view of the network in the legacy vote as they included in their
 real vote.
 
-If a legacy vote is present, then authorities MUST Authorities MUST
-list the same list of consensus-methods and the same voting
+If a legacy vote is present, then authorities MUST
+give the same list of consensus-methods and the same voting
 schedule in both votes.  Authorities MUST reject noncompliant votes.
 
 ## Computing an ENDIVE.
@@ -830,6 +844,7 @@ ENDIVEs, then the authorities proceed as follows.
 
 The RootSections are used verbatim as the bodies of the client-root-doc
 and relay-root-doc fields.
+> XXXX Additionally, we need to get VoterCerts from someplace.
 
 The fields that appear in each RelaySNIPInfo determine what goes into
 the SNIPRouterData for each relay.  Extra fields may be copied from the
@@ -853,7 +868,7 @@ need.)  Adding new IndexRule currently requires a new consensus-method.
 > XXXX This is a point where I will need to come back once we have all
 > the fields in the SNIPs and the votes straightened out, and specify
 > each and every field.  The main idea here is that we should be able to
-> define a not too hard deterministic transformation from the consensus
+> define a not-too-hard deterministic transformation from the consensus
 > fields to the body of a legacy consensus.  That means that every
 > field that goes into a legacy consensus needs to occur _somewhere_.
 > The RelayLegacyInfo section can _only_ be used for making legacy
@@ -861,41 +876,23 @@ need.)  Adding new IndexRule currently requires a new consensus-method.
 
 ## Managing indices over time.
 
-XXXX
+> XXX index groups could be fixed; that might be best at first. we could
+> reserve new methods for allocating new ones.
 
-index groups could be fixed; that might be best at first. we could
-reserve new methods for allocating new ones.
-
-xxxx each index group gets a set of tags: must have all tags to be in the
-group.  Additionally has set of weight/tag-set pairs: if you have
-all tags in that set, you get multiplied by the weight.  allow
-multiple possible source probabilities.
-
-xxx oh hey that might work!
-
-## Computing new consensus
-
+> xxxx each index group gets a set of tags: must have all tags to be in the
+> group.  Additionally has set of weight/tag-set pairs: if you have
+> all tags in that set, you get multiplied by the weight.  allow
+> multiple possible source probabilities.
 
 ## Bandwidth analysis
 
+XXXX
+
 ## Analyzing voting rules
 
-(of our past rule changes, which would have required alterations
+> XXXX (of our past rule changes, which would have required alterations
 here?)
 
 
-## Other work
 
-vote diffs?
-
-compress before upload
-
-
-
-    Line: key, series of tstr or bstr fields, then an optional (tag, bstr) pair?
-
-    tstr goes in UTF-8. bstr goes in base64. separated by spaces. then
-    begin/end foo...
-
-    can't use dict since order matters.
 

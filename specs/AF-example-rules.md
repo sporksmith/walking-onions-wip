@@ -17,7 +17,7 @@ VoteDocuments.
          prev-shared-rand: {op: "Mode", min_count: "qfield",
                              type:["tuple","uint","bstr"]},
       root: {
-         versions: {op:"SetJoin", min_count:"qfield",type:"tstr"},
+         recommend-versions: {op:"SetJoin", min_count:"qfield",type:"tstr"},
          require-protos: {op:"BitThreshold", min_count:"sqauth"},
          recommend-protos: {op:"BitThreshold", min_count:"qauth"},
          params: {op:"MapJoin",key_min_count:"qauth",
@@ -34,7 +34,7 @@ VoteDocuments.
                     item_op:{op:"Mode",type:"bool"}},
             bw : {op:"Median", type:"uint" },
             mbw :{op:"Median", type:"uint" },
-            rsaid : {op:"Mode", type:bstr}, // ????XXXX does this go here?
+            rsa-id : {op:"Mode", type:"bstr"},
         },
         snip: {
            ; 0: Ed25519 key is handled specially. XXX we'll need to specify it.
