@@ -10,17 +10,16 @@ for generating it.
 We cannot immediately abandon the text-based consensus and
 microdescriptor formats, however, but instead will need to keep
 generating them for legacy relays and clients.  Ideally, the legacy
-consensus should be a byproduct of the same voting process as is
+consensus should become a byproduct of the same voting process as is
 used to produce ENDIVEs, to limit the amount of divergence in
 contents.
 
 Further, it would be good for the purposes of this proposal if we
-can "inherit" as much as possible of our existing voting mechanism
-rather than needing to re-specify it from scratch.
+can "inherit" as our existing voting mechanism for legacy purposes.
 
-This section of the proposal will try to solve these goals by
-defining a new binary-based voting format which can nonetheless be
-used as an input to an the previous text-based consensus mechanism.
+This section of the proposal will try to solve these goals by defining a
+new binary-based voting format, a new set of voting rules for it, and a
+series of migration steps.
 
 ## Overview
 
@@ -37,10 +36,10 @@ consensus computation are:
     what kind of formats, diffs, and compression it supports.
 
   * We specify a CBOR-based binary format for votes, with a simple
-    deterministic transformation to the legacy text format.  This
-    transformation is meant for transitional use only; once all
-    authorities support the binary format, the transitional format
-    and its support structures can be abandoned.
+    embedding method for the legacy text format.  This embedding is
+    meant for transitional use only; once all authorities support
+    the binary format, the transitional format and its support
+    structures can be abandoned.
 
   * To reduce complexity, the new vote format also includes
     _verbatim_ microdescriptors, whereas previously microdescriptors
@@ -521,7 +520,9 @@ are to be formatted.
 
         ; Text-based legacy vote to be used if the negotiated
         ; consensus method is too old.  It should itself be signed.
-        ? legacy-vote : [ tstr ],
+        ; It's encoded as a series of text chunks to help with
+        ; cbor-based binary diffs.
+        ? legacy-vote : [ * tstr ],
 
         ; How should the votes within the individual sections be
         ; computed?
@@ -633,6 +634,7 @@ are to be formatted.
     }
 
     RelaySection = {
+       ; Mapping from key or key ID to relay information.
        * bstr => RelayInfo,
     }
 
@@ -657,13 +659,17 @@ are to be formatted.
     RelaySNIPInfo = SNIPRouterData
 
     RelayLegacyInfo = {
-       ? mds : [ *MDDigest ]
+       ? mds : [ *Microdesc ]
     }
 
-    MDDigest = [
+    Microdesc = [
        low : uint,
        high : uint,
-       digest : bstr .size 32
+       digest : bstr .size 32,
+       ; This is encoded in this way so that cbor-based diff tools
+       ; can see inside it.  Because of compression and diffs,
+       ; including microdesc text verbatim should be comparatively cheap.
+       content : encoded-cbor .cbor [ *tstr ],
     ]
 
     ; ==========
