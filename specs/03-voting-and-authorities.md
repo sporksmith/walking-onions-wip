@@ -28,6 +28,13 @@ mechanism all notions of how votes are transferred and processed.
 Other changes are likely desirable, but they are out of scope for
 this proposal.
 
+Notably, we are not changing how the voting schedule works.  Nor are
+we changing the property that all authorities must agree on the list
+of authorities; the property that that a consensus is computed as a
+deterministic function of a set of votes; or the property that if
+authorities believe in different sets of votes, they will not reach
+the same consensus.
+
 The principal changes in the voting that are relevant for legacy
 consensus computation are:
 
@@ -49,22 +56,23 @@ consensus computation are:
 
 For computing ENDIVEs, the principle changes in voting are:
 
-  * The consensus outputs for most votable objects are specified in a
+  * The consensus outputs for most voteable objects are specified in a
     way that does not require the authorities to understand their
     semantics when computing a consensus.  This should make it
-    easier to change fields without requiring consensus methods.
+    easier to change fields without requiring new consensus methods.
 
 ## Negotiating vote uploads
 
 Authorities supporting Walking Onions are required to support a new
-resource "/tor/auth-vote-opts.txt".  This resource is a text document
+resource "/tor/auth-vote-opts".  This resource is a text document
 containing a list of HTTP-style headers. Recognized headers are
 described below; unrecognized headers MUST be ignored.
 
-The *Accept-Encoding* follows the same as the header of the same
-name; it indicates a list of Content-Encodings that the authority
-will accept for uploads.  The gzip and identity encodings are
-mandatory. (Default: "gzip, identity"
+The *Accept-Encoding* header follows the same as the HTTP header of
+the same name; it indicates a list of Content-Encodings that the
+authority will accept for uploads.  All authorities SHOULD support
+the gzip and identity encodings.  The identity encoding is mandatory.
+(Default: "identity")
 
 The *Accept-Vote-Diffs-From* header is a list of digests of previous
 votes held by this authority; any new uploaded votes that are given
@@ -77,15 +85,15 @@ are "legacy-3" (Tor's current vote format) and "endive-1" (the vote
 format described here). Unrecognized vote formats MUST be ignored.
 (Default: "legacy-3".)
 
-If requesting "/tor/auth-vote-opts.txt" gives an error, or if one or
-more headers missing, the default values should be used.  These
+If requesting "/tor/auth-vote-opts" gives an error, or if one or
+more headers missing, the default values SHOULD be used.  These
 documents (or their absence) MAY be cached for up to 2 voting
 periods.)
 
 Authorities supporting Walking Onions SHOULD also support the
 "Connection: keep-alive" and "Keep-Alive" HTTP headers, to avoid
 needless reconnections in response to these requests.
-Implementators SHOULD be aware of potential denial-of-service
+Implementors SHOULD be aware of potential denial-of-service
 attacks based on open HTTP connections, and mitigate them as
 appropriate.
 
@@ -110,7 +118,7 @@ which voting operation to use for that field.  Specifying a voteable
 field without a voting operation MUST be taken as specifying the
 voting operation "None" -- that is, voting against a consensus.
 
-On the other hand, an authority MAY specify a voting operations for
+On the other hand, an authority MAY specify a voting operation for
 a field without casting any vote for it.  This means that the
 authority has an opinion on how to reach a consensus about the
 field, without having any preferred value for the field itself.
@@ -123,16 +131,19 @@ In some cases the integers are constant, but in
 When we encode these constants, we encode them as short strings
 rather than as integers.
 
+> I had thought of using negative integers here to encode these
+> special constants, but that seems too error-prone.
+
 The following constants are defined:
 
-`N_AUTH` -- the total number of authorities, including those whose votes
-are absent.
+`N_AUTH` -- the total number of authorities, including those whose
+votes are absent.
 
-`N_PRESENT` -- the total number of authorities whose votes are present for
-this vote.
+`N_PRESENT` -- the total number of authorities whose votes are
+present for this vote.
 
-`N_FIELD` -- the total number of authorites whose votes for a given field are
-present.
+`N_FIELD` -- the total number of authorities whose votes for a given
+field are present.
 
 Necessarily, `N_FIELD` <= `N_PRESENT` <= `N_AUTH` -- you can't vote
 on a field unless you've cast a vote, and you can't cast a vote
@@ -160,9 +171,6 @@ underlying field.  `SUPERQUORUM_x` is thus equivalent to
          "qauth" / "qpresent" / "qfield" /
          "sqauth" / "sqpresent" / "sqfield"
 
-> I had thought of using negative integers here to encode these
-> special constants, but that seems too error-prone.
-
 ### Producing consensus on a field
 
 Each voting operation will either produce a CBOR output, or produce
@@ -184,6 +192,17 @@ parameters, we are _not_ supporting full recursion here: there is a
 strict hierarchy of operations, and more complex operations can only
 have simpler operations in their parameters.
 
+All voting operations follow this metaformat:
+
+    ; All a generic voting operation has to do is say what kind it is.
+    GenericVotingOp = {
+        op : tstr,
+        * tstr => any,
+    }
+
+Note that some voting operations require a sort or comparison
+operation over CBOR values.  This operation is defined later in
+appendix E; it works only on homogeneous inputs.
 
 ### Generic voting operations
 
@@ -222,6 +241,8 @@ a tuple of such values.
     SimpleOp = MedianOp / ModeOp / ThresholdOp /
         BitThresholdOp / NoneOp
 
+We define each of these operations in the sections below.
+
 #### Median
 
 _Parameters_: `MIN_VOTES` (an integer), `BREAK_EVEN_LOW` (a boolean),
@@ -236,7 +257,7 @@ _Parameters_: `MIN_VOTES` (an integer), `BREAK_EVEN_LOW` (a boolean),
 Discard all votes that are not of the specified `TYPE`. If there are
 fewer than `MIN_VOTES` votes remaining, return "no consensus".
 
-Put the votes in ascending sorted order.  If the number of votes N
+Put the votes in ascending sorted order. If the number of votes N
 is odd, take the center vote (the one at position (N+1)/2).  If N is
 even, take the lower of the two center votes (the one at position
 N/2) if `BREAK_EVEN_LOW` is true. Otherwise, take the higher of the
@@ -359,10 +380,13 @@ types.
 
 They are encoded as:
 
-    ; MapOp encodics
+    ; MapOp encodings
     MapOp = MapJoinOp / StructJoinOp
 
 #### MapJoin
+
+The MapJoin operation combines homogeneous maps (that is, maps from
+a single key type to a single value type.)
 
 Parameters:
    `KEY_MIN_COUNT` (an integer >= 1)
@@ -427,25 +451,6 @@ map to that consensus in the result.
 
 This operation always reaches a consensus, even if it is an empty map.
 
-> teor says: can we make merging its own function, and call it conditionally,
-> based on a parameter to StructJoin?
-> Or can we give merged StructJoins a different name?
-
-*Merging*: It is possible to "_merge_" a set of StructJoinOp operations from
-different authorities into a single StructJoinOp.  To do so, for each
-key, consider whether at least QUORUM_AUTH authorities have voted voted the
-same StructItemOp.  If so, that StructItemOp is the resulting operation
-for this key.  Otherwise, there is no entry for this key.
-
-Do the same for the StructItemOp for the `UNKNOWN_RULE`.
-
-Note that this operation is not recursive, since a StructJoinOp cannot
-contain a StructJoinOp.
-
-Note that this operation does not happen "automatically" whenever a
-StructJoinOp is given, but only when we say it that we are merging a set
-of StructJoinOps.
-
 #### DerivedFromField
 
 This operation can only occur within a StructJoinOp operation. It indicates
@@ -495,6 +500,33 @@ from VoteDocuments that describe the same value for the source field.  Apply
 the `RULE` operation to those votes in order to give the result for this
 voting operation.
 
+### Voting on document sections
+
+Voting on a section of the document is similar to the StructJoin
+operation, with some exceptions.  When we vote on a section of the
+document, we do *not* apply a single voting rule immediately.
+Instead, we first "_merge_" a set of SectionRules together, and then
+apply the merged rule to the votes.  This is the only place where we
+merge rules like this.
+
+A SectionRules is _not_ a voting operation, so its format is not
+tagged with an "op":
+
+    ; Format for section rules.
+    SectionRules = {
+      * VoteableStructKey => SectionItemOp,
+      ? nil => SectionItemOp
+    }
+    SectionItemOp = StructJoinOp / StructItemOp
+
+To merge a set of SectionRules together, proceed as follows. For each
+key, consider whether at least QUORUM_AUTH authorities have voted voted the
+same StructItemOp.  If so, that StructItemOp is the resulting operation
+for this key.  Otherwise, there is no entry for this key.
+
+Do the same for the "nil" StructItemOp; use the result as the `UNKNOWN_RULE`.
+
+Note that this merging operation is *not* recursive.
 
 ## A CBOR-based metaformat for votes.
 
@@ -509,18 +541,21 @@ are to be formatted.
 
     ; VoteDocument is a top-level signed vote.
     VoteDocument = [
+        ; Each signature may be produced by a different key, if they
+        ; are all held by the same authority.
         sig : [ + SingleSig ],
         lifetime : Lifespan,
+        digest-alg : DigestAlgorithm,
         body : bstr .cbor VoteContent
     ]
 
     VoteContent = {
-        ; List of supportd consensus methods.
+        ; List of supported consensus methods.
         consensus-methods : [ + uint ],
 
         ; Text-based legacy vote to be used if the negotiated
         ; consensus method is too old.  It should itself be signed.
-        ; It's encoded as a series of text chunks to help with
+        ; It's encoded as a series of text chunks, to help with
         ; cbor-based binary diffs.
         ? legacy-vote : [ * tstr ],
 
@@ -529,7 +564,7 @@ are to be formatted.
         voting-rules : VotingRules,
 
         ; Information that the authority wants to share about this
-        ; vote, which is not for voting.
+        ; vote, which is not itself voted upon.
         notes : NoteSection,
 
         ; Meta-information that the authorities vote on, which does
@@ -574,13 +609,18 @@ are to be formatted.
         * tstr => any,
     }
 
+    ; An indexsection says how we think indices should be built.
     IndexSection = {
         IndexId => [ * IndexRule ],
     }
-
+    ; This should receive parameters and some way to group indices.XXXXX
     IndexRule = tstr
 
     VoteableValue =  MapVal / ListVal / SimpleVal
+    ; A "VoteableSection" is something that we apply part of the
+    ; voting rules to.  When we apply voting rules to these sections,
+    ; we do so without regards to their semantics.  When we are done,
+    ; we use these consensus values to make the final consensus.
     VoteableSection = {
        VoteableStructKey => VoteableValue,
     }
@@ -588,6 +628,7 @@ are to be formatted.
     ; the meta-section is voted on, but does not appear in the ENDIVE.
     MetaSection = {
        ; Seconds to allocate for voting and distributing signatures
+       ; Analagous to the "voting-delay" field in the legacy algorithm.
        voting-delay: [ vote_seconds: uint, dist_seconds: uint ],
        ; Proposed time till next vote.
        voting-interval : uint,
@@ -680,12 +721,6 @@ are to be formatted.
         relay : RelayRules,
         indices : SectionRules,
     }
-
-    ; We give a separate name here to indicate the fact that _these_
-    ; StructJoinOps get merged.  (These are the only StructJoinOps that
-    ; can exist right now, but we may want to have a distinction in the
-    ; future.)
-    SectionRules = StructJoinOp
 
     VotingOp = MapOp / ListOp / SimpleOp / UnknownOp
 
@@ -852,5 +887,4 @@ compress before upload
     begin/end foo...
 
     can't use dict since order matters.
-
 
