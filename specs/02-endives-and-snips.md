@@ -780,7 +780,7 @@ parameters, recommended versions, authority certificates, and so on.
     RootDocSignature = [
        ; Multisignature or threshold signature of the concatenation
        ; of the two digests below.
-       SingleSig / Multisig,
+       SingleSig / MultiSig,
 
        ; Lifespan information.  As with SNIPs, this is included as part
        ; of the input to the hash algorithm for the signature.
