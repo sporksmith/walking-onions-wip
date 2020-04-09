@@ -9,7 +9,7 @@ changes to be made in the circuit extension process.
 
 Further, there are changes we need to make for the handshake between
 the extending relay and the target relay.  The target relay is no
-longer told by the client which of its onion keys it should use.. so
+longer told by the client which of its onion keys it should use... so
 the extending relay needs to tell the target relay which keys are in
 the SNIP that the client is using.
 
@@ -51,6 +51,7 @@ The CREATE2, CREATED2, and EXTENDED2 cells changes as follows:
       struct truncated_body {
          // old fields
          u8 errcode;
+
          // new fields
          u8 n_extensions;
          struct extension extension[n_extensions];
@@ -67,15 +68,18 @@ The CREATE2, CREATED2, and EXTENDED2 cells changes as follows:
 
 
 
-Two extensions are defined by this proposal:
+These extensions are defined by this proposal:
 
-  [01] -- Partial_SNIPRouterData -- one or more fields from a SNIPRouterData
-          that will be given to the client along with the relay's
-          response to the CREATE2 cell.  (These fields are
-          determined by the "forward_with_extend" field in the ENDIVE.)
+  [01] -- `Partial_SNIPRouterData` -- Sent from an extending relay
+          to a target relay. This extension holds one or more fields
+          from the SNIPRouterData that the extending relay is using,
+          so that the target relay knows (for example) what keys to
+          use.  (These fields are determined by the
+          "forward_with_extend" field in the ENDIVE.)
 
-  [02] -- Full_SNIP -- an entire SNIP that was used to extend the
-          circuit.
+  [02] -- Full_SNIP -- an entire SNIP that was used in an attempt to
+          extend the circuit.  This must match the client's provided
+          index.
 
   [03] -- Extra_SNIP -- an entire SNIP that was not used to extend
           the circuit, but which the client requested anyway.  This
@@ -112,7 +116,7 @@ If there is more then one, then they should appear in order of
 client preference; the extending relay may extend to any of the
 listed routers.
 
-This link specifier SHOULD NOT be used with IPv4, IPv6, RSA ID, or
+This link specifier SHOULD NOT be used along with IPv4, IPv6, RSA ID, or
 Ed25519 ID link specifiers.  Relays receiving such a link along with
 a snip_index link specifier SHOULD reject the entire EXTEND request.
 
@@ -146,8 +150,13 @@ And the relay's reply is now:
 
 otherwise, all fields are computed as described in tor-spec.
 
-When this handshake is in use, keys are derived using SHAKE-128.
+When this handshake is in use, the hash function is SHA3-256 and keys
+are derived using SHAKE-256, as in rend-spec-v3.txt.
 
+> XXXX make sure that this isn't too expensive.
+
+We will have to give this version of the handshake a new handshake
+type.
 
 ## New relay behavior on EXTEND and CREATE failure.
 
@@ -169,7 +178,7 @@ fails.  A client's part of the NIL handshake is an empty bytestring;
 there is no server response that indicates success.
 
 The NIL handshake can used by the client when it wants to fetch a
-SNIP, without creating a circuit.
+SNIP without creating a circuit.
 
 Upon receiving a request to extend with the NIL circuit type, a
 relay SHOULD NOT actually open any connection or send any data to
