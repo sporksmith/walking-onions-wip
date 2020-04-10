@@ -862,6 +862,8 @@ need.)  Adding new IndexRule currently requires a new consensus-method.
 > lifespan of the legacy consensus, the lifespan of the ENDIVE, and the
 > lifespan of the SNIPs.
 
+> XXXX Explain how to compute the nonce(s?) used for signing the consensus
+> and its SNIPs.
 
 ## Computing a legacy consensus.
 
@@ -884,6 +886,12 @@ need.)  Adding new IndexRule currently requires a new consensus-method.
 > all tags in that set, you get multiplied by the weight.  allow
 > multiple possible source probabilities.
 
+> XXXX We should try to build bandwidth-weighted indices and similar to be
+> "stable" over time.  That is, if you're in position X right now, you should
+> still be "near" position X later.  This helps mitigate 
+
+
+
 ## Bandwidth analysis
 
 XXXX
@@ -891,8 +899,6 @@ XXXX
 ## Analyzing voting rules
 
 > XXXX (of our past rule changes, which would have required alterations
-here?)
-
-
+> here?)
 
 

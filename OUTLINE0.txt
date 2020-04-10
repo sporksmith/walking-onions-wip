@@ -39,8 +39,6 @@ OUTLINE OF ALL DOCUMENTS
 
 7. Hidden services and client behavior.
 
-8. Additional changes to the Tor network.
-    * Migrating away from TAP.
-    *  
+8. Tracking relay honesty
 
 9. Future work
