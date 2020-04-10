@@ -120,9 +120,28 @@ This link specifier SHOULD NOT be used along with IPv4, IPv6, RSA ID, or
 Ed25519 ID link specifiers.  Relays receiving such a link along with
 a snip_index link specifier SHOULD reject the entire EXTEND request.
 
+We add a second new link specifier [hex id here] for use when
+contacting hidden service directories:
+
+    /* Trunnel syntax again. */
+    struct snip_span {
+        u8 nth;
+        u16 index_id;
+        u8 index[];
+    }
+
+This link specifier means "the n'th SNIP after the one defined by
+the SNIP index."   A relay MAY reject this request if `nth` is greater
+than 4.  If the relay does not reject this request, then it MUST
+include all snips between `index` and the one that was actually used
+in an Extra_Snip extension.  (Otherwise, the client would not be
+able to verify that it had gotten the correct SNIP.)
+
 > XXX I'm avoiding use of cbor for these types. Is that correct? I
 >  think so, on the theory that there is no reason here, and we already use
 >  trunnel-like objcts for this purpose.
+
+> XXXX I could combine the two link specifiers above, and maybe I should.
 
 ## Modified ntor handshake
 
