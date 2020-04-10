@@ -32,3 +32,96 @@ Week 5:
 
    https://lists.torproject.org/pipermail/tor-dev/2020-April/014218.html
 
+
+This week I did a pass through all of the proposal that's written so
+far, trying to revise it for consistency and to look for unexpected
+gaps. Then I wrote a first take on a section about client behavior,
+and outlined sections about how to keep onions services working.
+
+== Fixing inconsistencies
+
+There were, predictably, some places where I had wrote things in an
+introduction to a section, and then turn around and did them
+differently later in the section.  I tried to make those consistent
+when I could.
+
+For one example, I think Microdescs should now be embedded in votes.
+They were separate before, for space reasons, but now that we have
+defined support for compression and diffs in voting, we don't need
+to keep votes as small as we did before.  But when I went to explain
+voting, I didn't actually give a place to put in microdescriptors.
+This is fixed now.
+
+== Example rules, and changes to voting.
+
+Thanks to Teor's help and feedback on previous iterations of voting, the
+voting operations [VOTING] are now more consistent, and specified more
+consistently.  I had to describe a "sorting" operation for use with
+voting, since CBOR's default "canonical" ordering is not what we
+actually want semantically.
+
+To try to make sure voting could do what we need, I wrote up an
+example VotingRules object in a new appendix [EXRULES].  This turned
+up a few impedance mismatches between the available voting rules,
+the SNIP format, and the ENDIVE format.  I fixed some of these, and
+marked others with "XXX" strings to come back and fix on the next
+pass through voting.
+
+== More index and extension protocol work
+
+I've found a need for a new link specifier (LS) for use with onion
+services.  Unlike a regular routing index LS, this kind includes a
+routing index and a count of how many relays to skip after that
+position.  This lets a client say, for example, "Give me the third relay
+after the one whose HDirIndex is 0xbf9630".  (In order to answer this
+query, the extending relay needs to return not only the SNIP for the
+third relay, but all SNIPs between the first relay and that relay, so
+that the client can trust the answer.)
+
+This kind of LS can be used with the new NIL handshake if the client
+_only_ wants to fetch the descriptor; the details are in
+circuit-protocol section [EXTENDING].
+
+== Client operations, part 1
+
+In a new section 06, I've sketched out solutions for guards, bridges,
+bootstrapping, and several kinds of path restriction [CLIENTS]. In doing
+so I've turned up a possible need for new IP-based and key-based
+indices; I've added those to a new appendix where I'm listing the
+different indices I think we'll need [INDEXLIST].
+
+== Outlines of work to come
+
+I've added outlines for a new section 7 about making onion services
+work, and a new section 8 about tracking some new ways that relays might
+have to misbehave.  I've also added quick sketches for a pair of
+additional proposals we'll need: one for a better family notation, and
+one for finally migrating away from the last vestiges of TAP.
+
+But none of those are quite next: In the coming week, if time permits, I
+want to get exit policies figured out.  They are the biggest missing
+piece of section 06 right now, and seem to me to be the biggest
+remaining gap in the specification.
+
+== Fun facts:
+
+At 109KiB, this is now the longest Tor proposal ever.  I will need to
+come up with a different fun fact next week.
+
+
+== References:
+
+[CLIENTS] https://github.com/nmathewson/walking-onions-wip/blob/master/specs/06-clients-behavior.md
+
+[EXTENDING] https://github.com/nmathewson/walking-onions-wip/blob/master/specs/05-extending-circuits.md
+
+[EXRULES] https://github.com/nmathewson/walking-onions-wip/blob/master/specs/AF-example-rules.md
+
+[INDEXLIST] https://github.com/nmathewson/walking-onions-wip/blob/master/specs/AG-index-list.md
+
+[VOTING] https://github.com/nmathewson/walking-onions-wip/blob/master/specs/03-voting-and-authorities.md
+
+
+
+
+

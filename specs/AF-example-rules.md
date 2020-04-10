@@ -53,7 +53,7 @@ VoteDocuments.
            ; protovers.
            ; XXXX use mapjoin here? Derived doesn't work on maps.
            4 : { op:"DerivedFrom", fields:[["RM","desc"]],
-                 rule:{op:"Mode",type=XXX } },
+                 rule:{op:"Mode",type=XXXX } },
 
            ; families.
            5 : { op:"SetJoin", min_count:"qfield", type:"bstr" },

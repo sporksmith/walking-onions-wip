@@ -6,4 +6,4 @@
 
 ## SNIPs for rendezvous points
 
-
+## TAP keys and where to find them
