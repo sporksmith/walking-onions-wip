@@ -76,6 +76,18 @@ contains:
           u16 max_len;
         }
 
+# Handling RELAY_EARLY
+
+The first fragment of each EXTEND cell should be tagged with RELAY_EARLY.
+The remaining fragments should not.  Relays should accept EXTEND cells if and
+only if their _first_ fragment is tagged with `RELAY_EARLY`.
+
+> Rationale: We could allow any fragment to be tagged, but that would give
+> hostile guards an opportunity to move RELAY_EARLY tags around and build a
+> covert channel.  But if we later move to a relay encryption method that
+> lets us authenticate RELAY_EARLY, we should require only that _any_
+> fragment has RELAY_EARLY set.
+
 # Compatibility
 
 This proposal will require the allocation of a new 'Relay' protocol version,
