@@ -54,11 +54,11 @@ This is fixed now.
 
 == Example rules, and changes to voting.
 
-Thanks to Teor's help and feedback on previous iterations of voting, the
-voting operations [VOTING] are now more consistent, and specified more
-consistently.  I had to describe a "sorting" operation for use with
-voting, since CBOR's default "canonical" ordering is not what we
-actually want semantically.
+Thanks to Teor's help and feedback on previous iterations of voting,
+the voting operations [VOTING] are now more consistent, and
+specified more consistently.  I had to describe a "sorting"
+operation for use with voting, since CBOR's default "canonical"
+ordering is not what we actually want semantically.
 
 To try to make sure voting could do what we need, I wrote up an
 example VotingRules object in a new appendix [EXRULES].  This turned
@@ -72,11 +72,11 @@ pass through voting.
 I've found a need for a new link specifier (LS) for use with onion
 services.  Unlike a regular routing index LS, this kind includes a
 routing index and a count of how many relays to skip after that
-position.  This lets a client say, for example, "Give me the third relay
-after the one whose HDirIndex is 0xbf9630".  (In order to answer this
-query, the extending relay needs to return not only the SNIP for the
-third relay, but all SNIPs between the first relay and that relay, so
-that the client can trust the answer.)
+position.  This lets a client say, for example, "Give me the third
+relay after the one whose HDirIndex is 0xbf9630".  (In order to
+answer this query, the extending relay needs to return not only the
+SNIP for the third relay, but all SNIPs between the first relay and
+that relay, so that the client can trust the answer.)
 
 This kind of LS can be used with the new NIL handshake if the client
 _only_ wants to fetch the descriptor; the details are in
@@ -84,29 +84,31 @@ circuit-protocol section [EXTENDING].
 
 == Client operations, part 1
 
-In a new section 06, I've sketched out solutions for guards, bridges,
-bootstrapping, and several kinds of path restriction [CLIENTS]. In doing
-so I've turned up a possible need for new IP-based and key-based
-indices; I've added those to a new appendix where I'm listing the
-different indices I think we'll need [INDEXLIST].
+In a new section 06, I've sketched out solutions for guards,
+bridges, bootstrapping, and several kinds of path restriction
+[CLIENTS]. In doing so I've turned up a possible need for new
+IP-based and key-based indices; I've added those to a new appendix
+where I'm listing the different indices I think we'll need
+[INDEXLIST].
 
 == Outlines of work to come
 
 I've added outlines for a new section 7 about making onion services
-work, and a new section 8 about tracking some new ways that relays might
-have to misbehave.  I've also added quick sketches for a pair of
-additional proposals we'll need: one for a better family notation, and
-one for finally migrating away from the last vestiges of TAP.
+work, and a new section 8 about tracking some new ways that relays
+might have to misbehave.  I've also added quick sketches for a pair
+of additional proposals we'll need: one for a better family
+notation, and one for finally migrating away from the last vestiges
+of TAP.
 
-But none of those are quite next: In the coming week, if time permits, I
-want to get exit policies figured out.  They are the biggest missing
-piece of section 06 right now, and seem to me to be the biggest
-remaining gap in the specification.
+But none of those are quite next: In the coming week, if time
+permits, I want to get exit policies figured out.  They are the
+biggest missing piece of section 06 right now, and seem to me to be
+the biggest remaining gap in the specification.
 
 == Fun facts:
 
-At 109KiB, this is now the longest Tor proposal ever.  I will need to
-come up with a different fun fact next week.
+At 109KiB, this is now the longest Tor proposal ever.  I will need
+to come up with a different fun fact next week.
 
 
 == References:
