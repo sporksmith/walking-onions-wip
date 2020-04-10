@@ -79,7 +79,7 @@ SNIP for the third relay, but all SNIPs between the first relay and
 that relay, so that the client can trust the answer.)
 
 This kind of LS can be used with the new NIL handshake if the client
-_only_ wants to fetch the descriptor; the details are in
+_only_ wants to fetch the descriptors; the details are in the
 circuit-protocol section [EXTENDING].
 
 == Client operations, part 1
