@@ -1,0 +1,20 @@
+
+This is a quick kludge to analyze properties of exit policies on the Tor
+network.  And to learn a little rust.
+
+Things to try:
+
+  # Get a count of how many policies support each port.
+  cargo run --release portcount ./cached_microdescs.new
+
+  # Get a disjoint set of port-sets such that every policy is the union
+  # of some combination of those port-sets.
+  cargo run --release cover ./cached-microdescs.new
+
+  # In the port-sets above, analyze which ones can be "combined" with which
+  # others without "losing" the ability to express too many of the policies.
+  cargo run --release cover-loss ./cached-microdescs.new
+
+(Remember to use --release, or rustc won't optimize, and you'll get slow
+code.)
+
