@@ -1,0 +1,125 @@
+
+Let there be a list of sets of exit ports in the root doc.  These should
+cover 1-65535.
+
+Each of these port sets gets its own index.  Suppose 16-32 sets.
+
+but each bw index costs 8-12 bytes per snip.  Listing all the indices seems too
+much.
+
+could let snips include a list of indices that the relay is in beyond those
+listed in the snip!  then 1-3 bytes per idx per snip.
+
+could use bitfield, even better.  3 bytes per snip total if ~16 indices.
+
+oh gosh this is gonna get to be huge.
+
+having all the exit indices in one group would be neat.
+
+
+each index group makes the expanded ENDIVE size waaay bigger.  We'll have to
+make sure we store these things mmapped.
+
+
+==============================
+
+Assuming that bandwidth were free and there were no privacy issues we could
+have one index per port (65535 port sets).  You'd get everything on the first
+try, and every relay would get the right amount of utilization. ENDIVE size
+would be huge though.
+
+If we have a smaller number of port sets, then necessarily we'll do less well
+on the utilization metric. Like, if we had one set of 1-65535 everybody who
+wasn't in it would be unused.  If we had one set of 443 and one of 1-65535,
+then everybody who didn't allow 443 but did allow some other stuff would get
+totally unused, and everybody who allowed 443+x but not everything would get
+unused.
+
+I think we want, for each stream (every byte of traffic?), it has the largest
+possible list of working relays to choose from.
+
+So clients should pick the smallest (or best?) set allowing port P.
+
+Given a port set S:
+
+Let R(S) = { r | r is a relay supporting every port in S }
+
+So R(S1 ⋃ S2) = R(S1) ⋂ R(S2).
+
+And R(S1) ⋃ R(S2) ⊆ R(S1 ⋂ S2)
+
+Define W(S) as the sum of weights of relays in R(S).
+
+
+==============================
+
+Expand earlier sketch: Root document has a list of (say) 8-32 exit port
+sets.
+
+We'd like it not to be too big.
+
+Exit policies are represented in SNIPs as a bitarray showing which of these
+exit port sets you support.  This helps the clients know which ports they can
+use for you without probing each one.  We can use a short identifier (1 byte)
+to set bitarray semantics and bind it to a root document.
+
+Each of these exit port sets gets an routing index in the Endive.
+
+We can use the Delegated Verified Selection algorithm from the paper to
+handle the client just asking for a relay from the "Exit" index, then wanting
+another port it doesn't support. (But if we do, then the SNIP needs to
+include at least a general index.  We might need to have a way for a SNIP to
+list an index without claiming it is authoritative for that index.)
+
+This seems like it would solve most of the problems *if we choose the sets
+correctly.*
+
+
+==============================
+
+Can we do anything with the "properties in merkle trees" idea from section 6?
+I'm not in love with it but maybe it could do some good.
+
+
+==============================
+
+To find port sets, algorithm of port classes from walking onions paper seems
+applicable (better analyze the perl first) but it seems to make more cuts
+than necessary.  If we're willing to get lossy we can look for highly
+correlated sets and join them.
+
+
+==============================
+
+But what if we get around 200 sets?  The bitarray in the SNIP isn't a
+problem (only 25 bytes), but the ENDIVE would get huge (1600+ bytes
+longer for each SNIP at least) if we do one index per set.  So maybe we
+would have DVS work differently.  What we really need to send to the
+client is "if you want this port and that index, use this other relay
+instead."
+
+If we had only one exit index we could send all the SNIPs between the
+user's chosen index and the first one supporting the port.  That
+wouldn't explode the ENDIVE so badly, but BEGIN responses would be big.
+
+==============================
+
+How could we converge on fewer sets?  We could have sets that are
+inaccurate (with some holes), or incomplete (missing some relays).  The
+latter seems safer and might encourage policy uniformity.  The former
+leaves us with the "oops I didn't mean that" problem.
+
+So let's say that we no longer insist on having port sets that fully capture
+all permitted ports for every relay -- but which are "accurate" in that we
+
+If we combine two sets, then we "lose" all the (port,relay)s in each set
+whose relays are not in the other set.  We should probably try to minimize
+this "loss" by bandwidth weight rather than by count.  Losing weight on some
+ports is probably worse than losing weight on others.
+
+Exit-analysis tool can find port-sets, and can find pairs of port-sets that
+are candidates to combine with others.  It can't yet find "best" combination.
+In theory finding the best port-sets is a graph-theory question, though there
+are probably different ways to formulate it.
+
+
