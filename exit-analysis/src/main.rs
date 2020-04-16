@@ -302,6 +302,45 @@ fn combining_loss(pset1: &BitArray, pset2: &BitArray) -> u32 {
 
 /// Find covering policy sets, and dump out the impact of combining
 /// each set with each other set, if the result isn't "too bad".
+fn emit_loss_graph(policies: &[Policy]) {
+    let cover0 = find_cover(policies);
+    let covering_sets: Vec<_> = cover0
+        .iter()
+        .map(|(c, _)| (c, find_supporting_policies(c, policies)))
+        .collect();
+
+    println!("PORTS = [");
+    for (c1, _) in covering_sets.iter() {
+        println!("    '{}',", c1);
+    }
+    println!("]");
+
+    println!("GRAPH=[");
+    for (_c1, pol1) in covering_sets.iter() {
+        let count1 = pol1.count();
+        print!("    [");
+        for (_c2, pol2) in covering_sets.iter() {
+            /*
+            // this weighing treats all (port-relay) units as equally
+            // important, so the first port 25 is just as important as
+            // the 100th port 443.  Other possibilities are possible.
+            let loss = combining_loss(pol1, pol2);
+             */
+
+            // This weighting treats losing all ports as equally
+            // important, but treats losing 10% of port 24 as being
+            // just as bad as losing 10% of port 443.
+            let loss = combining_loss(pol1, pol2) as f64 / count1 as f64;
+
+            print!("{},", loss);
+        }
+        println!("],");
+    }
+    println!("]");
+}
+
+/// Find covering policy sets, and dump out the impact of combining
+/// each set with each other set, if the result isn't "too bad".
 fn analyze_coverage_combination(policies: &[Policy]) {
     let cover0 = find_cover(policies);
     let covering_sets: Vec<_> = cover0
@@ -329,6 +368,7 @@ fn analyze_coverage_combination(policies: &[Policy]) {
         }
     }
 }
+
 
 /// If "line" is well-formed "p accept" or "p reject" line, parse it into a
 /// Policy. Otherwise, return None.
@@ -404,6 +444,7 @@ enum Command {
     Portcount,
     Cover,
     CoverLoss,
+    LossGraph,
 }
 
 fn main() -> io::Result<()> {
@@ -419,6 +460,7 @@ fn main() -> io::Result<()> {
         "portcount" => Portcount,
         "cover" => Cover,
         "cover-loss" => CoverLoss,
+        "loss-graph" => LossGraph,
         _ => {
             println!("Recognized commands: portcount, cover, cover-loss");
             return Ok(());
@@ -436,6 +478,7 @@ fn main() -> io::Result<()> {
         Portcount => print_portcount(&policies),
         Cover => print_cover(&policies),
         CoverLoss => analyze_coverage_combination(&policies),
+        LossGraph => emit_loss_graph(&policies),
     }
 
     Ok(())
