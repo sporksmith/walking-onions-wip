@@ -320,8 +320,8 @@ published time, etc.
         ; Country Code
         ? 6 => Country,
 
-        ;  I don't know what I want to do here yet. I'll revisit this.
-        ;  XXXX
+        ; Exit policies describing supported port _classes_.  Absent exit
+        ; policies are treated as "deny all".
         ? 7 => ExitPolicy,
 
         ; XXXX Properly speaking, there should be a CDDL 'cut'
@@ -387,10 +387,22 @@ published time, etc.
     ; new protoid.
     ProtoBitmask = uint
 
-    ; XXXX I've got to come back when I know what to do about exit
-    ; policies.
-    ExitPolicy = undefined
+    ; An exit policy may exist in up to two variants.  When port classes
+    ; have not changed in a while, only one policy is needed.  If port
+    ; classes have changed recently, however, then SNIPs need to include
+    ; each relay's position according to both the older and the newer policy
+    ; until older root documents become invalid.
+    ExitPolicy = SinglePolicy / [ SinglePolicy, SinglePolicy ]
 
+    ; Each single exit policy is a tagged bit array, whose bits are indexes
+    ; into the list of port classes in the root document with a corresponding
+    ; tag.
+    SinglePolicy = [
+         ; Identifies which group of port classes we're talking about
+         tag : uint,
+         ; Bit-array of which port classes this relay supports.
+         policy : bstr
+    ]
 
 ### SNIPLocation: Locating a SNIP within a routing index.
 
@@ -803,6 +815,9 @@ parameters, recommended versions, authority certificates, and so on.
        ; using the authorities longest-term identity keys.
        voters : [ + VoterCert ],
 
+       ; A division of exit ports into "classes" of ports.
+       port-classes: PortClasses,
+
        ; As in client-versions from dir-spec.txt
        ? recommend-versions: [ * tstr ],
        ; As in recommended-client-protocols in dir-spec.txt
@@ -836,6 +851,15 @@ parameters, recommended versions, authority certificates, and so on.
     ; Relays are expected to first check for a defintion in the
     ; RelayRootDocument, and then in the ClientRootDocument.
     NetParams = { *tstr => int }
+
+    PortClasses = {
+        tag : uint,  ; identifies which port class this is. Used for migration.
+        classes: [ IndexId, * PortList ], ; ordered list of the port classes.
+    }
+    PortList = [ *PortOrRange ]
+     ; Either a single port or a low-high pair
+    PortOrRange = Port / [ Port, Port ]
+    Port = 1...65535
 
 ## Certificates
 
