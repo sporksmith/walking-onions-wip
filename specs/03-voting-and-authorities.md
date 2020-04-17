@@ -246,7 +246,7 @@ a tuple of such values.
 
     ; We encode these operations as:
     SimpleOp = MedianOp / ModeOp / ThresholdOp /
-        BitThresholdOp / NoneOp
+        BitThresholdOp / CborSimpleOp / NoneOp
 
 We define each of these operations in the sections below.
 
@@ -435,7 +435,8 @@ Parameters:
     `UNKNOWN_RULE` (An operation to apply to unrecognized keys.)
 
     ; Encoding
-    StructItemOp = ListOp / SimpleOp / MapJoinOp / DerivedItemOp
+    StructItemOp = ListOp / SimpleOp / MapJoinOp / DerivedItemOp /
+        CborDerivedItemOp
 
     VoteableStructKey = int / tstr
 
@@ -460,6 +461,31 @@ of this key.  If there _is_ a consensus for the values, then the key should
 map to that consensus in the result.
 
 This operation always reaches a consensus, even if it is an empty map.
+
+#### CborData
+
+A CborData operation wraps another operation, and tells the authorities
+that after the operation is completed, its result should be decoded as a
+CBOR bytestring.
+
+Parameters: `ITEM_OP` (Any SingleOp that can take a bstr input.)
+
+     ; Encoding
+     CborSimpleOp = {
+         op: "CborSimple",
+         item-op: MedianOp / ModeOp / ThresholdOp / NoneOp
+     }
+     CborDerivedItemOp = {
+         op: "CborDerived",
+         item-op: DerivedItemOp,
+     }
+
+To apply either of these operations to a set of votes, first apply
+`ITEM_OP` to those votes.  After that's done, check whether the
+consensus from that operation is a bstr that encodes a single item of
+"well-formed" "valid" cbor.  If it is not, this operation gives no
+consensus.  Otherwise, the consensus value for this operation is the
+decoding of that bstr value.
 
 #### DerivedFromField
 
