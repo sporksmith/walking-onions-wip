@@ -1,4 +1,4 @@
-Walking Onions: week 6 update
+Walking Onions: week 7 update
 
  On our current grant from the zcash foundation, I'm working on a
 full specification for the Walking Onions design.  I'm going to try to
@@ -38,3 +38,139 @@ Week 6:
    https://lists.torproject.org/pipermail/tor-dev/2020-April/014222.html
 
 
+== Clustering exit ports
+
+This week I tried to figure out how exits work with walking onions.
+A naive approach might have 65535 different routing indices in the
+ENDIVE (one for each TCP port), but that would give horrible
+performance: it would make the expanded ENDIVEs absolutely huge.
+Instead, we can cluster ports into "classes" based on which are
+always supported or not supported together.  (For example, on the
+day I scanned the directory, every relay supporting any port in the
+range 49002-50000 supported all of them.)  There are about 200 such
+classes on the current Tor network.
+
+But 200 exit indices is still probably too much: it seems like we'll
+need to cluster exit ports together in a more lossy way.  For
+example, not every exit that supports port 80 supports port 443 or
+vice versa.  But around 98% of them do -- so it we wouldn't be
+losing too much by using one exit index for "443 and 80", and not
+listing the 2% of exits that only support one of those ports.
+
+I wrote a short program [EXIT-ANALYSIS] to experiment with
+clustering strategies here, and settled on a greedy algorithm to get
+down to a smaller number of port classes by iteratively combining
+whichever pair of classes will cause us to lose the fewest number of
+(relay:port) possibilities.  We can get down to 16 classes and lose
+only 0.07% of all the relay:port possibilities; we can get down to 8
+classes and lose only 0.2%.
+
+That's not the whole story, though.  Some of what we're losing would
+be things we'd miss.  When the algorithm gives us 16 classes, it
+loses 75% of port 10000, 70% of port 23, and so on.  Clearly not all
+ports are equivalent, and we should tune this approach to take that
+into account.  We should also consider the bandwidth impact of these
+changes, and retool the algorithm so that it minimizes the
+bandwidth-per-port combination we have.
+
+We'd also likely want to hand-edit these port lists
+so that they make more sense semantically on their own.  That way,
+we could take Teor's suggestion from last month and try to give exit
+relays the options to opt in to or out of human-intelligible
+partitions.
+
+Further, we could save some complexity by requiring dual-stack exits
+to support the same ports on IPv4 and IPv6.  That way we wouldn't
+need to worry about divergent sets of port classes.
+
+== So what do we do with these clusters?
+
+If a client wants to connect to port 25, and uses a port-25-only
+index, that leaks the client's intention to the middle node.  That's
+not so good.  Instead, in the tech report [WHITEPAPER], one or both
+of Chelsea Komlo and Ian Goldberg came up with a mechanism called
+Delegated Verifiable Selection (DVS).  With DVS, when the client
+sends a BEGIN cell, the relay can respond that it does not support
+the requested port, along with a SNIP from a relay that does.  To
+prevent the relay from choosing an arbitrary SNIP, the BEGIN cell
+would have to include an auxiliary index value to be used when DVS
+is in place, and the END cell would need room for a SNIP.
+
+(Alternatively, clients could just make a 3-hop circuit and ask it
+for SNIPs to be used as exits on some other circuit.)
+
+== Voting on policy sets
+
+These policy clusters (and a few other things!) are too complex for
+the voting operations I had before.  Fortunately, it's safe to treat
+them as opaque.
+
+I've added a new voting operation to allow authorities to vote on a
+bstr that is then decoded and treated as a cbor object (if it is valid
+and well-formed).  It should be useful in other places too.
+
+== Migrating port classes
+
+Migrating from one set of port classes to another is nontrivial.
+Clients who have the old root document will expect the indices to
+correspond to one partition of ports, whereas clients with the new
+root document will expect another partition.  To solve this, I've
+designed the system so that two sets of exit indices can exist
+concurrently while clients are moving to the newer partition of
+ports.
+
+Alternatively, we could give SNIPs a mechanism to contain a field
+saying "Your root document must be at least this new."  I don't know
+which approach would be simpler; both seem like too much complexity for a
+feature that would only be used occasionally.
+
+== Next steps
+
+My next plan here is to write up onion services; I believe I've got
+the design there mostly figured out, and just need to write it down.
+
+After that, I'm planning to turn back and fill in all the missing
+subsections that I've written so far, and write a short
+introduction.  There are a lot of missing sections, so that won't be
+super fast.  I'm also going to need to show the whole thing to a
+beta reader or two to answer the question, "Would this make sense to
+somebody who doesn't already know what it says?"
+
+
+== Fun facts
+
+The script to generate exit port classes [EXIT-ANALYSIS] was written in
+Rust. If I'm counting right, it's only my second Rust program that
+actually does something useful!  If you are one of those Rust
+enthusiasts who would like to critique it, I wouldn't mind at all --
+just send me comments offline or make notes on the repository.
+
+(Only do this if you like critiquing newbie Rust that was never
+actually meant for production use.  Don't do this if you just want
+to point out all the things that make it unsuitable for production
+use.)
+
+== Not-so-fun facts
+
+This week I've been fairly overwhelmed with the lead up to and down
+from the recent layoffs at Tor, in response to a downturn in funding
+during the COVID-19 pandemic [BLOGPOST]. Tor will continue, and this
+work will continue with it--but it is still a hard blow to have to
+lose so many excellent coworkers. (Yes, I'm still at Tor, for the
+record.)
+
+Do you know somebody who is interested in hiring one or more amazingly
+talented programmers, engineers, communications specialists, or project
+managers -- all with experience at productive remote work and all with
+dedication to improving people's lives?  Please pass their information
+along to tor-alums@lists.torproject.org , and it will (after moderation)
+get forwarded to those affected.
+
+
+[BLOGPOST] https://blog.torproject.org/covid19-impact-tor
+
+[EXIT-ANALYSIS] https://github.com/nmathewson/walking-onions-wip/tree/master/exit-analysis
+
+[EXIT-PARTITION] https://lists.torproject.org/pipermail/tor-dev/2020-March/014182.html
+
+[WHITEPAPER] https://crysp.uwaterloo.ca/software/walkingonions/
