@@ -13,17 +13,10 @@ Things to try:
 
   # In the port-sets above, analyze which ones can be "combined" with which
   # others without "losing" the ability to express too many of the policies.
-  cargo run --release cover-loss ./cached-microdescs.new
+  #
+  # Do this iteratively until only 16 policies remain.
+  cargo run --release greedy-16 ./cached-microdescs.new
 
 (Remember to use --release, or rustc won't optimize, and you'll get slow
 code.)
 
-==============================
-
-I've added a python script that uses networkx to try to find an approximate
-min-k-cut, based on a graph that the rust code emits, but the weights in the
-graph are all wrong.  As implemented now, we'd actually want a "min-noncut"
-where we divide the graph into k components such that the total weight of
-_noncut_ edges as is low as possible.  Either I need a way to transform the
-graph so that min-k-cut applies, or I need a cost function such that min-cut
-is what we want.

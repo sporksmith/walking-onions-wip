@@ -212,9 +212,10 @@ impl Policy {
     }
 }
 
-// Write a policy in a human-readable form.
+// Write a policy in a human-readable form, as a list of accepted port-ranges
 impl Display for Policy {
     fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // Helper: dump a range.
         fn dump(
             first: bool,
             lo: u16,
@@ -266,6 +267,9 @@ fn find_cover(policies: &[Policy]) -> Vec<(Policy, u32)> {
     // based on ian goldberg's perl code in the walkingonions pape repo
     let mut classes = Vec::new();
 
+    // TODO: we don't actually use these 'count' values, and a policy
+    // bitmap would be more appropriate.
+
     classes.push((read_policy_from_line("p accept 1-65535").unwrap(), 0u32));
 
     for pol in policies.iter() {
@@ -289,20 +293,14 @@ fn find_cover(policies: &[Policy]) -> Vec<(Policy, u32)> {
     classes
 }
 
-/// Dump out a set of covering sets for some input policies.
-fn print_cover(policies: &[Policy]) {
-    let classes = find_cover(policies);
-    for (cl, ct) in classes {
-        println!("{}: {}", ct, cl);
-    }
-}
-
 /// For a given covering policy, return a bitarray representing which
 /// members of 'policies' support every one of its ports.
 fn find_supporting_policies(covering: &Policy, policies: &[Policy]) -> BitArray {
     policies.iter().map(|p| p.contains(covering)).collect()
 }
 
+/// A pair containing a set of accepted ports (the policy), and a bitarray
+/// representing which relays' policies support all of those ports.
 #[derive(Clone, Eq, PartialEq)]
 struct PolSupporters {
     ports: Policy,
@@ -310,19 +308,37 @@ struct PolSupporters {
 }
 
 impl PolSupporters {
+    /// Construct a PolSupporters from a set of `ports`, and from a list
+    /// of all the relays.  Note that PolSupporters objects constructed
+    /// from differerent lists of relays are not interoperable.
     fn from_port_set(ports: Policy, all_policies: &[Policy]) -> Self {
         let relays = find_supporting_policies(&ports, all_policies);
         PolSupporters { ports, relays }
     }
+    /// How many ports does this policy support?
     fn port_count(&self) -> u32 {
         self.ports.port_count()
     }
+    /// How many relay support this policy?
     fn relay_count(&self) -> u32 {
         self.relays.count()
     }
+    /// What is the "value" of this policy?  This is whatever we are
+    /// are trying to maximize when we combine policy groups together.
     fn value(&self) -> u32 {
+        // Here we define the value of a policy simply as the number of
+        // exit ports it contains, times the number of relays supporting it.
+        //
+        // TODO: In production we should probably take bandwidth into
+        // account, and we should probably treat some ports
+        // (e.g. https) as more important than others (e.g., chargen, echo,
+        // random high-ports not assigned to any service).
         self.ports.port_count() * self.relays.count()
     }
+    /// What is the "cost" of combining this policy with `ps`?  We
+    /// define the cost as the amount of value() we would lose when we
+    /// combine the two sets into one.  This function must therefore
+    /// be consistent with value() and combine().
     fn combining_cost(&self, ps: &PolSupporters) -> u32 {
         // number of relays supporting us but not ps.
         let r1 = self.relays.subtract(&ps.relays).count();
@@ -331,6 +347,12 @@ impl PolSupporters {
 
         r1 * self.port_count() + r2 * ps.port_count()
     }
+    /// Join two policy sets into one: the new set contains more ports
+    /// (all the ports from the two sets that were combined) and fewer
+    /// relays (only those relays that were in both parent sets).
+    ///
+    /// Return a tuple of the new set and of the value lost by doing the
+    /// combination.
     fn combine(&self, ps: &PolSupporters) -> (PolSupporters, u32) {
         let ports = self.ports.union(&ps.ports);
         let relays = self.relays.intersect(&ps.relays);
@@ -341,34 +363,9 @@ impl PolSupporters {
     }
 }
 
-/// Find covering policy sets, and dump out the impact of combining
-/// each set with each other set, if the result isn't "too bad".
-fn analyze_coverage_combinations(policies: &[Policy]) {
-    let covering_sets: Vec<_> = find_cover(policies)
-        .into_iter()
-        .map(|(c, _)| PolSupporters::from_port_set(c, policies))
-        .collect();
-
-    for psup1 in covering_sets.iter() {
-        let count1 = psup1.relay_count();
-        println!("Analyzing set {} ({})", psup1.ports, count1);
-
-        for psup2 in covering_sets.iter() {
-            let count2 = psup2.relay_count();
-            let loss = psup1.combining_cost(psup2);
-            // A combination is "acceptable" if it gives less than 5%
-            // loss from either set.
-            let acceptable = loss * 20 <= count1 && loss * 20 <= count2;
-            if acceptable && psup1 != psup2 {
-                println!(
-                    "\t {}: {}/{} lost [{}/{}]",
-                    psup2.ports, loss, count1, loss, count2
-                );
-            }
-        }
-    }
-}
-
+/// Given an interator returning (Policy,u32) pairs, construct a
+/// vector containing, for each port, the number of policies that
+/// suppport it, weighted by the paired u32 values.
 fn get_portcount<'a, I1>(weighted_policies: I1) -> Vec<u32>
 where
     I1: IntoIterator<Item = (&'a Policy, u32)>,
@@ -384,20 +381,43 @@ where
     portcount
 }
 
-///
+/// Use a greedy algorithm to look for a good partition of ports, given
+/// a list of relay `policies`.  Uses PolSupporters::value() to decide
+/// how "good" a partition is.  Tries to make a partition into `target` sets.
+/// Prints the partition and its cost.
 fn greedy_combine_coverage(policies: &[Policy], target: usize) {
+    assert!(target >= 1);
+    // how many relays are there in total?
     let n_relays = policies.len();
+    // How many relays support each port in the original set of policies?
     let orig_portcount = get_portcount(policies.iter().map(|p| (p, 1)));
+    // Start by using find_cover() to get a minimal set of policies
+    // such that every relay's policy can be built as a combination of
+    // some policies in the set.  This will have the highest possible
+    // "value" (since every relay's policy is reflected here in full),
+    // but will have too many different policies for convenient use
+    // with Walking Onions.
     let mut combined: Vec<_> = find_cover(policies)
         .into_iter()
         .map(|(c, _)| PolSupporters::from_port_set(c, policies))
         .collect();
 
+    // Total "value" of the original port partition.
     let orig_value = combined.iter().fold(0, |acc, ps| acc + ps.value());
+    // Keep track of how much "value" we've paid, to double-check.
     let mut total_cost = 0;
 
     while combined.len() > target {
-        // XXXX this recalculates a lot of values in every iteration
+        // Here's the greedy algorithm: with each step, we look at all
+        // distinct pairs of policies, and find the pair that would
+        // have the lowest cost to combine.  Then we combine that pair
+        // into one, and continue.
+
+        // 1. Find the best policy.
+        //
+        // (TODO this recalculates a lot of values in every iteration.
+        // We don't need to actually need to recalculate the ones that didn't
+        // change.)
         let mut best_cost = std::u32::MAX;
         let mut best_idx = None;
         for (idx1, psup1) in combined.iter().enumerate() {
@@ -412,8 +432,10 @@ fn greedy_combine_coverage(policies: &[Policy], target: usize) {
                 }
             }
         }
+        // 2. We found a pair to combine.
         if let Some((idx1, idx2)) = best_idx {
             assert!(idx1 < idx2);
+            // remove idx2 before idx1, to avoid index problems.
             let psup2 = combined.remove(idx2);
             let psup1 = combined.remove(idx1);
             let (newval, cost) = psup1.combine(&psup2);
@@ -428,18 +450,25 @@ fn greedy_combine_coverage(policies: &[Policy], target: usize) {
             );
             total_cost += cost;
         } else {
+            // Somehow we didn't find anything to combine. Probably an error.
             break;
         }
     }
+    // Double-check total_cost is correct according to our value function.
     let cur_value = combined.iter().fold(0, |acc, ps| acc + ps.value());
     assert_eq!(orig_value - cur_value, total_cost);
 
+    // Recalculate a new version of orig_portcount (how many relays
+    // now support each port).
     let final_portcount = get_portcount(
         combined
             .iter()
             .map(|ps| (&ps.ports, ps.relay_count() as u32)),
     );
 
+    // Compare orig_portcount and final_portcount, to get the
+    // percentage of relays supporting each port that are no longer
+    // listed.
     let mut port_loss: Vec<_> = orig_portcount
         .into_iter()
         .zip(final_portcount.into_iter().enumerate())
@@ -447,6 +476,7 @@ fn greedy_combine_coverage(policies: &[Policy], target: usize) {
         .collect();
 
     println!("===================== DONE.");
+    // Print the final port partition.
     for (idx, psup) in combined.iter().enumerate() {
         println!(
             "Set {} [{}/{} relays]: {}",
@@ -456,6 +486,8 @@ fn greedy_combine_coverage(policies: &[Policy], target: usize) {
             psup.ports
         );
     }
+
+    // Describe the cost of achieving this partition.
     println!(
         "We lost {}/{} ports getting down to {} sets. [{:.5}%]",
         total_cost,
@@ -525,6 +557,14 @@ fn read_policies<R: io::Read>(r: io::BufReader<R>) -> io::Result<Vec<Policy>> {
     Ok(policies)
 }
 
+/// Dump out a set of covering sets for some input policies.
+fn print_cover(policies: &[Policy]) {
+    let classes = find_cover(policies);
+    for (cl, ct) in classes {
+        println!("{}: {}", ct, cl);
+    }
+}
+
 /// For each port, print the number of policies supporting that port.
 fn print_portcount(policies: &[Policy]) {
     let portcount = get_portcount(policies.iter().zip(std::iter::repeat(1u32)));
@@ -537,14 +577,13 @@ fn print_portcount(policies: &[Policy]) {
 enum Command {
     Portcount,
     Cover,
-    CoverLoss,
     Greedy(usize),
 }
 
 fn main() -> io::Result<()> {
     let args: Vec<_> = env::args().collect();
     if args.len() < 3 {
-        println!("I want an command and a filename.");
+        println!("I want an command and a filename (like cached-microdescs)");
         return Ok(());
     }
     let cmd = args.get(1).unwrap();
@@ -553,11 +592,11 @@ fn main() -> io::Result<()> {
     let cmd = match &cmd[..] {
         "portcount" => Portcount,
         "cover" => Cover,
-        "cover-loss" => CoverLoss,
         "greedy-16" => Greedy(16),
         "greedy-8" => Greedy(8),
+        "greedy-4" => Greedy(4),
         _ => {
-            println!("Recognized commands: portcount, cover, cover-loss");
+            println!("Recognized commands: portcount, cover, greedy-{{16,8,4}}");
             return Ok(());
         }
     };
@@ -572,7 +611,6 @@ fn main() -> io::Result<()> {
     match cmd {
         Portcount => print_portcount(&policies),
         Cover => print_cover(&policies),
-        CoverLoss => analyze_coverage_combinations(&policies),
         Greedy(n) => greedy_combine_coverage(&policies, n),
     }
 
