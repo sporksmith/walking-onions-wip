@@ -86,8 +86,70 @@ UnsignedSNIP on future attempts to connect to the bridge.
 
 ## Finding relays by exit policy
 
-> XXXX This is a harder one; I'm coming back to this after re-reading
-> our ideas from the paper and analyzing the data a lot.
+To find a relay by exit policy, clients might choose the exit index
+corresponding to the exit port they want to use.  This has negative privacy
+implications, however, since the middle node discovers what kind of exit
+traffic the client wants to use.  Instead, we support two other options.
+
+First, clients may build anonymous three-hop circuits and then use those
+circuits to request the SNIPs that they will use for their exits.  This
+may, however, be inefficient.
+
+Second, clients may build anonymous three-hop circuits and then use a
+BEGIN cell to try to open the connection when they want.  When they do
+so, they may include a new flag in the begin cell, "DVS" to enable
+Delegated Verifiable Selection.  As described in the Walking Onions
+paper, DVS allows a relay that doesn't support the requested port to
+instead send the client the SNIP of a relay that does.  (In the paper,
+the relay uses a digest of previous messages to decide which index to
+use: Instead, we have the client send an index field.)
+
+This requires changes to the BEGIN and END cell formats.  After the
+"flags" field in BEGIN cells, we add an extension mechanism:
+
+    struct begin_cell {
+        nulterm addr_port;
+        u32 flags;
+        u8 n_extensions;
+        struct extension exts[n_extensions];
+    }
+
+We allow the `snip_index` link specifier type to appear as a begin
+extension.
+
+END cells will need to have a new format that supports.  This format is
+enabled whenever a new `EXTENDED_END_CELL` flag appears in the begin
+cell.
+
+    struct end_cell {
+        u8 tag IN [ 0xff ]; // indicate that this isn't an old-style end cell.
+        u8 reason;
+        u8 n_extensions;
+        struct extension exts[n_extensions];
+    }
+
+We define three END cell extensions.  Two types are for addresses, that
+indicate what address was resolved and the associated TTL:
+
+    struct end_ext_ipv4 {
+        u32 addr;
+        u32 ttl;
+    }
+    struct end_ext_ipv6 {
+        u8 addr[16];
+        u32 ttl;
+    }
+
+One new END cell extension is used for delegated verifiable selection:
+
+    struct end_ext_alt_snip {
+        u16 index_id;
+        u8 snip[..];
+    }
+
+This design may require END cells to become wider; see
+other-proposals/xxx-wide-everything.txt for an example proposal to
+supersede propose 249 and allow more wide cell types.
 
 ## Universal path restrictions
 

@@ -21,4 +21,16 @@ Certificate Types and Key Types:
     cert-spec.txt, and possibly merge the two lists.
 
 Protocol versions:
-xXXX
+XXXX
+
+Begin cells:
+
+    We need a flag for Delegated Verifiable Selection.
+
+    We need an extension type for extra data, and a value for indices.
+
+End cells:
+
+    We need an extension type for extra data, a value for indices, and a
+    value for IPv4 addresses, and a value for IPv6 addresses.
+

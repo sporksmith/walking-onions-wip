@@ -66,8 +66,6 @@ The CREATE2, CREATED2, and EXTENDED2 cells changes as follows:
          u8 body[len];
       }
 
-
-
 These extensions are defined by this proposal:
 
   [01] -- `Partial_SNIPRouterData` -- Sent from an extending relay
@@ -103,7 +101,7 @@ index, using the following coding for its contents:
 
     /* Using trunnel syntax here. */
     struct snip_index {
-        u16 index_id; // which index is it?
+        u16 index_id; // which index is it? XXXX what if this is a bstr??
         u8 index[]; // extends to the end of the link specifier.
     }
 
