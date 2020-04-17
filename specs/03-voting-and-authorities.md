@@ -914,9 +914,12 @@ need.)  Adding new IndexRule currently requires a new consensus-method.
 
 > XXXX We should try to build bandwidth-weighted indices and similar to be
 > "stable" over time.  That is, if you're in position X right now, you should
-> still be "near" position X later.  This helps mitigate 
+> still be "near" position X later.  This helps mitigate attacks based
+> on relays giving you a choice of different SNIPs.
 
-
+> XXXX exits present a special issue, since if we change the port
+> classes we need to add a new set of indeces and keep the old ones for
+> a while.
 
 ## Bandwidth analysis
 
