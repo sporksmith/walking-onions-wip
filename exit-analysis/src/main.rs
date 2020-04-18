@@ -421,10 +421,8 @@ fn greedy_combine_coverage(policies: &[Policy], target: usize) {
         let mut best_cost = std::u32::MAX;
         let mut best_idx = None;
         for (idx1, psup1) in combined.iter().enumerate() {
-            'inner: for (idx2, psup2) in combined.iter().enumerate() {
-                if idx1 >= idx2 {
-                    continue 'inner;
-                }
+            for (idx2, psup2) in combined.iter().enumerate().skip(idx1 + 1) {
+                assert!(idx1 < idx2);
                 let cost = psup1.combining_cost(psup2);
                 if cost < best_cost {
                     best_cost = cost;
