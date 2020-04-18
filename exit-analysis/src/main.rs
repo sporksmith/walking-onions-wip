@@ -238,14 +238,11 @@ impl Display for Policy {
             if self.allows(port) {
                 span = match span {
                     None => Some((port, port)),
+                    Some((lo, hi)) if hi == port - 1 => Some((lo, port)),
                     Some((lo, hi)) => {
-                        if hi == port - 1 {
-                            Some((lo, port))
-                        } else {
-                            dump(first, lo, hi, fmt)?;
-                            first = false;
-                            Some((port, port))
-                        }
+                        dump(first, lo, hi, fmt)?;
+                        first = false;
+                        Some((port, port))
                     }
                 }
             }
