@@ -115,7 +115,7 @@ impl BitArray {
     ///
     /// Requires self.len() == p.len()
     fn count(&self) -> u32 {
-        self.bits.iter().fold(0, |acc, i| acc + i.count_ones())
+        self.bits.iter().map(|n| n.count_ones()).sum()
     }
     /// Grow this bit array so that it can hold at least 'sz'
     /// elements.  Fill new bits with false.
@@ -403,7 +403,7 @@ fn greedy_combine_coverage(policies: &[Policy], target: usize) {
         .collect();
 
     // Total "value" of the original port partition.
-    let orig_value = combined.iter().fold(0, |acc, ps| acc + ps.value());
+    let orig_value: u32 = combined.iter().map(|ps| ps.value()).sum();
     // Keep track of how much "value" we've paid, to double-check.
     let mut total_cost = 0;
 
