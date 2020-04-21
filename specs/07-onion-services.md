@@ -39,8 +39,9 @@ this entry is:
 
 
 Clients SHOULD begin treating the link specifier and onion-key
-fields of each intrroduction point as optional when the "snip" field
-is presnt. If either of these fields _is_ present, and the SNIP is
+fields of each introduction point as optional when the "snip" field
+is present, and when the `hsv3-tolerate-no-legacy` network parameter
+is set to 1. If either of these fields _is_ present, and the SNIP is
 too, then these fields MUST match those listed in the SNIPs.
 Clients SHOULD reject descriptors with mismatched fields, and alert
 the user that the service may be trying a partitioning attack.
@@ -53,7 +54,11 @@ checked similarly.
 > that the relay might not understand.
 
 Services should include these fields based on a set of network
-parameters. (See appendix C)
+parameters: `hsv3-intro-snip` and `hsv3-intro-legacy-fields`.
+(See appendix C.)
+
+Clients should use these fields only when walking onion support is
+enabled; see section 09.
 
 ## SNIPs for rendezvous points
 
@@ -91,10 +96,11 @@ on the network, we have two choices:  We could migrate them to use
 ntor keys instead of TAP, or we could provide a way for TAP keys to
 be advertised with walking onions.
 
-The first option is beyond the scope of this proposal.  To implement
-the second option, ...xxxx
+The first option would appear to be far simpler. See
+proposal xxx-tap-out-again.txt.
 
->XXX basic idea here is to stick a TAP key digest in the SNIP, and
->give a way to retrieve that key on request.  Alternatively we could
->make a SNIP that includes a whole TAP key, but that would be large.
+The latter option would require us to put RSA-1024 keys in SNIPs, or
+put a digest of them in SNIPs and give some way to retrieve them
+independently.
+
 

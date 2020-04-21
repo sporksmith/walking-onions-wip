@@ -66,6 +66,9 @@ Network parameters:
     INTRODUCE2 cells when the service supports it?
     Min: 0. Max: 1. Default: 0.
 
+    hsv3-tolerate-no-legacy -- Should clients tolerate v3 service descriptors
+    that don't have legacy fields? Min: 0. Max: 1. Default: 0.
+
 Extensions for decrypted INTRODUCE2 cells:
 
     [xx] -- a SNIP for the rendezvous point.
