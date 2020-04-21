@@ -14,7 +14,13 @@ resource balance.
 
 HSDirV2 -- index for finding spots on the hsv2 directory ring.
 
-HSDirV3 -- index for finding spots on the hsv3 directory ring.
+HSDirV3-early -- index for finding spots on the hsv3 directory ring
+for the earlier of the two "active" days. (The active days are
+today, and whichever other day is closest to the time at which the
+ENDIVE becomes active.)
+
+HSDirV3-early -- index for finding spots on the hsv3 directory ring
+for the later of the two "active" days.
 
 Self -- A virtual index that never appears in an ENDIVE.  SNIPs with
 this index are unsigned, and occupy the entire index range.  This

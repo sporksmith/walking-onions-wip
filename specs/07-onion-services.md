@@ -1,9 +1,100 @@
 # Using and providing onion services with Walking Onions
 
+Both live versions of the onion service design rely on a ring of
+hidden service directories for use in uploading and downloading
+hidden service descriptors.  With Walking Onions, we can use routing
+indices based on Ed25519 or RSA identity keys to retrieve this data.
+
+(The RSA identity ring is unchanging, whereas the Ed25519 ring
+changes daily based on the shared random value: for this reason, we
+have to compute two simultaneous indices for Ed25519 rings: one for
+the current day, and one for whichever other day is closest.)
+
+Beyond the use of these indices, however, there are other steps that
+clients and services need to take in order to maintain their privacy.
+
 ## Finding HSDirs
 
-## SNIPs for introduction points?
+When a client or service wants to contact an HSDir, it SHOULD do so
+anonymously, by building a three-hop anonymous circuit, and then
+extending it a further hop using the snip_span link specifier to
+upload to any of the first 3 replicas on the ring.  Clients SHOULD
+choose an 'nth' at random; services SHOULD upload to each replica.
+
+Using a full 80-bit or 256-bit index value in the link specifier
+would leak the chosen service to somebody other than the directory.
+Instead, the client or service SHOULD truncate the identifier to a
+number of bytes equal to the network parameter `hsv2-index-bytes` or
+`hsv3-index-bytes` respectively.  (See Appendix C.)
+
+## SNIPs for introduction points
+
+When services select an introduction point, they should include the
+SNIP for the introduction point in their hidden service directory
+entry, along with the introduction-point fields.  The format for
+this entry is:
+
+    "snip" NL snip NL
+      [at most once per introduction points]
+
+
+Clients SHOULD begin treating the link specifier and onion-key
+fields of each intrroduction point as optional when the "snip" field
+is presnt. If either of these fields _is_ present, and the SNIP is
+too, then these fields MUST match those listed in the SNIPs.
+Clients SHOULD reject descriptors with mismatched fields, and alert
+the user that the service may be trying a partitioning attack.
+The "legacy-key" and "legacy-key-cert" fields, if present, should be
+checked similarly.
+
+> Using the SNIPs in these ways allows services to prove that their
+> introduction points have actually been listed in the consensus
+> recently.  It also lets clients use introduction point features
+> that the relay might not understand.
+
+Services should include these fields based on a set of network
+parameters. (See appendix C)
 
 ## SNIPs for rendezvous points
 
+When a client chooses a rendezvous point for a v3 onion service, it
+similarly has the opportunity to include the SNIP of its rendezvous
+point in the encrypted part of its INTRODUCE cell.  (This may cause
+INTRODUCE cells to become fragmented; see proposal about fragmenting
+relays cells.)
+
+> Using the SNIPs in these ways allows services to prove that their
+> introduction points have actually been listed in the consensus
+> recently.  It also lets services use introduction point features
+> that the relay might not understand.
+
+To include the SNIP, the client places it in an extension in the
+INTRODUCE cell.  The onion key can now be omitted[*], along with
+the link specifiers.
+
+> [*] Technically, we use a zero-length onion key, with a new type
+> "implicit in SNIP".
+
+To know whether the service can recognize this kind of cell, the
+client should look for the presence of a "snips-allowed 1" field in
+the encrypted part of the hidden service descriptor.
+
+In order to prevent partitioning, services SHOULD NOT advertise
+"snips-allowed 1" unless the network parameter
+"hsv3-rend-service-snip" is set to 1.  Clients SHOULD NOT use this
+field unless "hsv3-rend-client-snip" is set to 1.
+
 ## TAP keys and where to find them
+
+If v2 hidden services are still supported when walking onions arrive
+on the network, we have two choices:  We could migrate them to use
+ntor keys instead of TAP, or we could provide a way for TAP keys to
+be advertised with walking onions.
+
+The first option is beyond the scope of this proposal.  To implement
+the second option, ...xxxx
+
+>XXX basic idea here is to stick a TAP key digest in the SNIP, and
+>give a way to retrieve that key on request.  Alternatively we could
+>make a SNIP that includes a whole TAP key, but that would be large.
+
