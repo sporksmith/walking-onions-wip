@@ -36,6 +36,17 @@ End cells:
 
 Network parameters:
 
+    "enforce-endive-dl-delay-after" -- How many seconds after receiving a
+    SNIP with some timestamp T does a client wait for rejecting older SNIPs?
+    Equivalent to "N" in "limiting ENDIVE variance within the network."
+    Min: 0. Max: INT32_MAX. Default: 3600 (1 hour).
+
+    "allow-endive-dl-delay" -- Once a client has received an SNIP with
+    timestamp T, it will not accept any SNIP with timestamp earlier than
+    "allow-endive-dl-delay" seconds before T.
+    Equivalent to "Delta" in "limiting ENDIVE variance within the network."
+    Min: 0. Max: 2592000 (30 days). Default: 10800 (3 hours).
+
     hsv2-index-bytes -- bytes to use when sending an hsv2 index to look up a
     hidden service directory.  Min: 1, Max: 40. Default: 4.
 

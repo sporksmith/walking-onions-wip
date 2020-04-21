@@ -1,23 +1,66 @@
 
 # Tracking Relay honesty
 
-> XXXX explain the problem here: relays might close circuits rather than
-> answer a request, or might keep multiple ENDIVEs around and pick from one.
+Our design introduces an opportunity for dishonest relay behavior:
+since multiple ENDIVEs are valid at the same time, a malicious relay
+might choose any of several possible SNIPs in response to a client's
+routing index value.
 
-## Defense: tracking close rate
-
-> XXXX basic idea is similar to circuit bias detection today.
+Here we discuss several ways to mitigate this kind attack.
 
 ## Defense: index stability
 
-> XXXX basic idea is that authorities should try to build indices so they
-> don't change any more over time than is necessary.  if the client asks for
-> the relay at position P, and the relay has 20 ENDIVEs to choose from, then
-> there should be maybe 2-4 choices, not 20.
+First, the voting process should be designed such that relays do not
+needlessly move around the index.  For example, it would -not- be
+appropriate to add an index type whose value is computed by first
+putting the relays into a pseudorandom order.  Instead, index voting
+should be deterministic and tend to give similar outputs for similar
+inputs.
+
+This proposal tries to achieve this property in its index voting
+algorithms.  We should measure the degree to which we succeed over
+time, by looking at all of the ENDIVEs that are valid at any
+particular time, and sampling several points for each index to see
+how many distinct relays are listed at each point, across all valid
+ENDIVEs.
+
+We do not need this stability property for indices whose purpose is
+nonrandomized relay selection, such as those indices used for onion
+service directories.
 
 ## Defense: enforced monotonicity
 
-> XXXX basic idea is that once an honest relay has an ENDIVE, it will throw
-> away every older ENDIVE.  Clients and immediate-predecessor relays can
-> detect and enforce this.
+Once an honest relay has received an ENDIVE, it has no reason to
+keep any previous ENDIVEs or serve SNIPs from them.  Because of
+this, relay implementations SHOULD ensure that no data is served
+from a new ENDIVE until all the data from an old ENDIVE is
+thoroughly discarded.
 
+Clients and relays can use this monotonicity property to keep relays
+honest: once a relay has served a SNIP with some timestamp `T`, that
+relay should never serve any other SNIP with a timestamp earlier than
+`T`.  Clients SHOULD track the most recent SNIP timestamp that they
+have received from each of their guards, and MAY track the most
+recent SNIP timestamps that they have received from other relays as
+well.
+
+## Defense: limiting ENDIVE variance within the network.
+
+The primary motivation for allowing long (de facto) lifespans on
+today's consensus documents is to keep the network from grinding to
+a halt if the authorities fail to reach consensus for a few hours.
+But in practice, _if_ there is a consensus, then relays should have
+it within an hour or two-- they should not be falling a full day out
+of date.
+
+Therefore we can potentially add a client behavior that, within N
+minutes after the client has seen seen any SNIP with timestamp `T`,
+the client should not accept any snip with timestamp earlier than
+`T-Delta`.
+
+Values for N and Delta are controlled by network parameters
+(`enfoce-endive-dl-delay-after` and `allow-endive-dl-delay`
+respectively in appendix C).  N should be about as long as we expect
+it to take for a single ENDIVE to propagate to all the relays on the
+network; Delta should be about as long as we would like relays to go
+between updating ENDIVEs under ideal circumstances.
