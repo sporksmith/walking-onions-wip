@@ -1,4 +1,8 @@
 
+> THIS IS ABANDONED. See xxx-improving-242.md instead.  See
+> the end of this file for reasons why.
+
+
 > XXXX this is only an outline.
 
 KEY ideas
@@ -13,4 +17,91 @@ using some kind of authentication-and-certification mechanism.
 Need to specify an algorithm for the former.
 
 Need to specify a mechanism for the latter.
+
+# Compact representation for families
+
+As we migrate to walking onions we need to represent relay families
+with a smaller format than we use today.
+
+Currently, families are represented by having each relay in the
+family list the identity of every other relay in the family. That
+makes the total space used to represent families proportional to the
+square of the family size.
+
+Family declarations currently make up a little over 55% of the
+microdescriptors in the directory (around 24% after compression).
+The largest family has around 270 members.  270 members times a
+160-bit hashed identifier leads to over 5 kilobytes per SNIP, which
+is much greater than we'd want to use.
+
+Instead, we'd like to represent each family with a single
+identifier, such that if and only if two relays share the same
+identifier, they belong to the same family.  As we do this, we'd
+like to retain the following properties of our current family
+design:
+
+  * A malicious relay cannot insert itself into a family without
+    permission from the other relays in the family.
+
+  * Nobody can insert a relay into a family without its operator's
+    permission.
+
+## Related work
+
+In proposal 242, I wrote a design where family membership could be
+attested by a certificate signed with a family key.  Any relay that
+includes such a certificate in its descriptor is in the family
+represented by the family key.
+
+This proposal is an extension of proposal 242 with a more clear
+migration path, and an application to Walking Onions.
+
+## Listing families, not relatives.
+
+I propose that clients should receive microdescriptors and SNIPs
+that contain lists of families, rather than a list of relays that
+form a family.  Since microdescriptors and SNIPs are attested by the
+authorities, authorities generate them in this without loss of
+security.
+
+These families are identified by opaque bytestrings.  If two relays
+have any family in common for their SNIPs or microdescriptors, then
+they are in the same family.  Otherwise, they are not.
+
+Family identity types can come in two types: one is a "certified
+family" designated by the certificate format of proposal 242, and the
+other is a an "emergent family" calculated by the authorities as
+described below.
+
+"Certified families" are preferred long-term.  Their identifiers are
+the master keys for each family.  Emergent families are a legacy
+feature to be used while waiting for relays to migrate to support
+proposal 242.  They will be described below.
+
+## Computing emergent families.
+
+> XXX I'd like to have a design here where the authorities do a
+> max-clique computation on the family graph in order to determine
+> which families exist.  That's got at least two problems, though.
+>
+> First, max-clique is exponential in the worst case, and I'm not really
+> happy about just hoping that we don't hit the worst case with
+> authorities.
+>
+> Second, since the results would need to go in the
+> microdescriptors, but they'd depend on the consensus about
+> families, we'd have to change the flow for voting on microdescriptors.
+>
+> Third, since walking onions is the main motivation here, and walking
+> onions requires relay upgrades, we can additionally require relays to
+> support a revised proposal 242.
+>
+> I think that this is complicated enough that I should just do a
+> revised proposal 242 with a better migration path.
+
+### Improving proposal 242
+
+
+
+
 

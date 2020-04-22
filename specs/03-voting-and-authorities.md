@@ -101,6 +101,11 @@ appropriate.
 > right for this, since Accept-Vote-Diffs-From does not fit with its
 > semantics.
 
+> Note: It might be desirable to support this negotiation for legacy
+> votes as well, even before walking onions is implemented.  Doing so
+> would allow us to reduce authority bandwidth a little, and possibly
+> include microdescriptors in votes for more convenient processing.
+
 ## A generalized algorithm for voting
 
 Unlike with previous versions of our voting specification, here I'm
@@ -859,6 +864,11 @@ If a legacy vote is present, then authorities MUST
 give the same list of consensus-methods and the same voting
 schedule in both votes.  Authorities MUST reject noncompliant votes.
 
+> XXXX It is somewhat desirable (see xxx-improved-242.md) to include all
+> the microdescriptors here as well.  That might seem expensive, but it
+> actually shouldn't be too bad because of compression and diffs.
+> Better analyze that, however.
+
 ## Computing an ENDIVE.
 
 > XXXX This is a sketch, not a complete specification.  I'll have to
@@ -929,5 +939,4 @@ XXXX
 
 > XXXX (of our past rule changes, which would have required alterations
 > here?)
-
 
