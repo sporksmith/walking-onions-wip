@@ -29,7 +29,7 @@ VoteDocuments.
          meta: {
             desc: {op:"Mode", min_count:"qauth",tie_low:false,
                    type:["uint","bstr"] },
-            ; XXXX is "1" correcct?
+            ; XXXX is "1" correct?
             flags: {op:"MapJoin", key_type:"tstr",
                     item_op:{op:"Mode",type:"bool"}},
             bw : {op:"Median", type:"uint" },
@@ -43,17 +43,19 @@ VoteDocuments.
            1 : { op:"DerivedFrom", fields:[["RM","desc"]],
                  rule:{op:"Mode",type="bstr"} },
 
-           ; link specifiers. this could be a setjoin or a derivedfrom.XXXX
-           ; 2 : {},
+           ; link specifiers.
+           2 : { op: "CborDerived",
+                 item-op: { op:"DerivedFrom", fields:[["RM","desc"]],
+                            rule:{op:"Mode",type="bstr" } } },
 
            ; software description.
            3 : { op:"DerivedFrom", fields:[["RM","desc"]],
                  rule:{op:"Mode",type=["tuple", "tstr", "tstr"] } },
 
            ; protovers.
-           ; XXXX use mapjoin here? Derived doesn't work on maps.
-           4 : { op:"DerivedFrom", fields:[["RM","desc"]],
-                 rule:{op:"Mode",type=XXXX } },
+           4 : { op: "CborDerived",
+                 item-op: { op:"DerivedFrom", fields:[["RM","desc"]],
+                          rule:{op:"Mode",type="bstr" } } },
 
            ; families.
            5 : { op:"SetJoin", min_count:"qfield", type:"bstr" },
