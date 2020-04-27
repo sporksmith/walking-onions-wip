@@ -1,0 +1,166 @@
+Walking Onions: week 8 update
+
+ On our current grant from the zcash foundation, I'm working on a
+full specification for the Walking Onions design.  I'm going to try to
+send out these updates once a week.
+
+My previous updates are linked below:
+
+ Week 1:
+   formats, preliminaries, git repositories, binary diffs,
+   metaformat decisions, and Merkle Tree trickery.
+
+   https://lists.torproject.org/pipermail/tor-dev/2020-March/014178.html
+
+ Week 2:
+   Specifying details of SNIP and ENDIVE formats, in CDDL.
+
+   https://lists.torproject.org/pipermail/tor-dev/2020-March/014181.html
+
+ Week 3:
+   Expanding ENDIVEs into SNIPs.
+
+   https://lists.torproject.org/pipermail/tor-dev/2020-March/014194.html
+
+Week 4:
+   Voting (part 1) and extending circuits.
+
+   https://lists.torproject.org/pipermail/tor-dev/2020-March/014207.html
+
+Week 5:
+   Voting (part 2)
+
+   https://lists.torproject.org/pipermail/tor-dev/2020-April/014218.html
+
+Week 6:
+   Editing, voting rules, and client behavior (part 1)
+
+   https://lists.torproject.org/pipermail/tor-dev/2020-April/014222.html
+
+Week 7:
+   Exit policies: How do they work?
+
+   https://lists.torproject.org/pipermail/tor-dev/2020-April/014232.html
+
+== Onion services: surprisingly easy! (but not?)
+
+This week I started with a look at onion services and how to make
+them work with Walking Onions [ONIONSPEC].  Most of my initial
+thought had gone into the problem of finding and using HSDirs, and
+so specifying this part went smoothly.  I already havd a link
+specifier for asking for a span of several entries in an ENDIVE, and
+I already had a notion of truncating index values based on a network
+parameter.
+
+The harder part came when I wanted to talk about how to specify
+introduction points and rendezvous points by their SNIPs.  The hard
+part here was managing the migration path.  To avoid fingerprinting,
+when we make changes to the onion service protocol of this kind, we
+need to give a lot of onion services and clients the opportunity to
+start supporting the new protocol all at once, and then to stop
+supporting the old one all at once.  This requires more network
+parameters, somewhat carefully specified.  I'm hoping we can turn
+this into a more general pattern.
+
+And the most irritating part is when I ran into the issue of
+supporting HSv2 handshakes.  Were it not for those, we wouldn't have
+to keep TAP keys around any more -- and TAP keys would bloat SNIPs
+to a pretty huge degree.  The best answer here seems to be migrating
+our legacy HSv2 services so they can use ntor onion keys for intro
+and rendezvous points.  That would also need to be done in a phased
+way.  [TAP-OUT-AGAIN].
+
+The alternative way to keep HSv2 working with walking onions would
+be to allow TAP keys to be distributed as part of the SNIP system.
+That seems like a fair amount of work, though, and unlike using
+ntor, it wouldn't have any positive benefit.
+
+((Yes, HSv2 is deprecated.  But I don't want to give people who
+still use it a reason to avoid the walking onions transition.))
+
+== Relay honesty and ENDIVE swapping
+
+One of the issues with our current directory system is that multiple
+consensus network documents are valid at the same time.  In
+practice, clients will accept fairly old documents, to avoid running
+into trouble if the authorities have failed to vote.  But this
+client behavior gives hostile directory guards an opportunity to
+select which of several recent documents to serve.
+
+Walking Onions would make this problem worse, since every relay,
+when it serves a SNIP, is serving part of a directory that it
+knows a client is about to use.  If we did nothing to mitigate the
+problem, then hostile relays could mount an "ENDIVE swapping" attack
+where they look at a client's choice of routing index, and then see
+whether any live ENDIVE contains a SNIP that the attacker likes at
+that position.
+
+In [HONESTY] I described a few responses to this problem.  The first
+is that we should limit the rate at which the index layouts
+change. The second is that all parties that look up SNIPs through a
+relay should verify that the "published" times from each relay are
+monotonically increasing.
+
+The third response seems like the most useful to me: we would
+recognize that under ordinary circumstances, the permissible
+lifetime for an ENDIVE would be much shorter than it would be under
+emergency (consensus failed) circumstances.  That is, if everything
+is going well, each relay should get a new ENDIVE every hour or so.
+Only if there is no new ENDIVE should clients accept SNIPs that
+are extremely old.
+
+With this in mind, I'm proposing a rule that if a client sees _any_
+valid SNIP published at time `T` or later, it should not accept any
+SNIP published before time `T-Delta`.  (Delta is a network
+parameter.)  With this rule in place, clients will insist on fresh
+SNIPs when the network is working well, but will tolerate old ones
+if the authorities are failing to reach consensus for a while.
+
+== More questions of migration
+
+One hard step in any proposal is dealing with migration questions.
+I've stared to try to lay out a timeline in a new section
+[MIGRATION].  This part isn't looking great to me right now.  It
+seems like it won't be safe to turn on Walking Onions for clients
+until it's supported by most relays.  Moreover, clients that use
+Walking Onions won't be able to use relays (or at least, non-exit
+relays) without support for it.  This implies a longer migration
+path than I'd like, but I don't see a way around it.
+
+== And what about families?
+
+Our existing family representation is quadratic in family size,
+since every relay needs to list every other relay in the family.
+This gets worse with Walking Onions, since SNIPs can't benefit from
+compressing the repeated family entries.
+
+At first I had hoped to use some kind of a max-clique algorithm to
+infer the families at the authorities, and then encode clique
+identifiers in the SNIPs.  This isn't such a great idea, though:
+I wasn't able to persuade myself that an adversary couldn't force
+the authorities' burden to become exponential here.
+
+Instead I think we should resurrect proposal 242, in an improved
+version [BETTER-FAMILIES].  Instead of having to list every node in
+a family, each relay in a family would include a signed certificate
+from a "family key" attesting to their membership in the family.
+The proposal addresses some tricky compatibility issues.
+
+== Coming up next
+
+This week is going to be rather busy on my end:  I'll be a bit
+startled if I get very much done with Walking Onions at all.  My
+hope is to edit the proposal, fill in gaps, and address pending
+comments.
+
+
+
+[BETTER-FAMILIES] https://github.com/nmathewson/walking-onions-wip/blob/master/other-proposals/xxx-improved-242.md
+
+[HONESTY] https://github.com/nmathewson/walking-onions-wip/blob/master/specs/08-tracking-relay-honesty.md
+
+[MIGRATION] https://github.com/nmathewson/walking-onions-wip/blob/master/specs/09-migration.md
+
+[ONIONSPEC] https://github.com/nmathewson/walking-onions-wip/blob/master/specs/07-onion-services.md
+
+[TAP-OUT-AGAIN] https://github.com/nmathewson/walking-onions-wip/blob/master/other-proposals/xxx-tap-out-again.md
