@@ -1,0 +1,11 @@
+
+Let's figure out how to do personalization: we don't want to have testing
+networks and other networks mixing.
+
+We could do this with a signature personalization string:  Something that
+goes into all the signatures, along with the validity times.
+
+See also the personalization pre-proposal that I started a while back in
+response to idea from Teor. Subject line was 'Was it you who had the "network
+personalization" idea?"
+

@@ -1,0 +1,15 @@
+
+Suppose that we move to one of those postquantum signature algorithms
+with huge signatures.  Or suppose we decide not to use threshold
+signatures and we need a workable multisignature algorithm.  Both of
+those would cause us to have huge SNIPs, which we're trying to avoid.
+
+So what we could do instead is stick the signature in a detached thing
+which you only have to download once.  I guess not the root document,
+since that's only fetched occasionally.  Instead it could be a detached
+signature that authenticates a merkle root.  In that case, instead of a
+signature at the SNIP root we could have a reference to _which_ detached
+signature wer're using (since multiple ENDIVEs exist).  Better have a
+digest and a date.
+
+

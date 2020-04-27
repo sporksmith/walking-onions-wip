@@ -1,0 +1,33 @@
+# topology and future-proofing
+
+We'd like to have a split-ENDIVES mechanism so that we can eventually support
+more complicated net topologies where group 1 connects to group 2 connects to
+group 3.  You only need the ENDIVE for your own group.
+
+Seems that this part of the design writes itself: we put every relay in a
+group.  We add a "group" field to the signature parameters: you _have_ to
+know the preceding group in order to check the signature.
+
+     (XXX Or do you?  this means that you can't show somebody else a SNIP
+     without saying which group gave it to you.  Might have to tweak that
+     idea. Or have a "comprehensive index" that every relay is in, and you
+     just fetch your own.)
+
+You'll have to know your own group to get an ENDIVE.  Not sure how to find
+your own group.  Ping authorities?  Leave unspecified?  Maybe an "ENDIVE-for"
+download URL that redirects to the ENDIVE you want.
+
+The authorities could lie though, so there should be at least one additional
+signed thing saying "relay x is in group G".
+
+Moving things between groups seems quite hairy.  If the relay referring
+clients to you says you are in group X but you have an endive that says you
+are in group Y, what happens?
+
+============================================================
+
+Other option: index mapping.  We list indices by functionality in the root
+document.  (e.g., "middle = 2").  Then we say somehow say later that "middle
+= 2 from group X, 3 from group Y."
+
+
