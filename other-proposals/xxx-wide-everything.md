@@ -1,5 +1,14 @@
 
 
+```
+======================================================================
+OBSOLETE
+
+This is now proposal 319 in torspec.git.  Look there instead.
+======================================================================
+```
+
+
 # Introduction
 
 Proposal 249 described a system for `CREATE` cells to become wider, in order to

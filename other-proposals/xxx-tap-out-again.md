@@ -1,4 +1,13 @@
 
+
+```
+======================================================================
+OBSOLETE
+
+This is now proposal 320 in torspec.git.  Look there instead.
+======================================================================
+```
+
 # Removing TAP from v2 onion services
 
 Though v2 onion services are obsolescent and their cryptographic
