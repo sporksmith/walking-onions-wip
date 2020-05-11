@@ -1,26 +1,28 @@
 
+
 # Introduction
 
-Proposal 249 describes a system for create cells to become wider, in order to
+Proposal 249 described a system for `CREATE` cells to become wider, in order to
 accommodate hybrid crypto.  And in order to send those cell bodies across
-circuits, it described a way to split CREATE cells into multiple EXTEND
+circuits, it described a way to split `CREATE` cells into multiple `EXTEND`
 cells.
 
-But there are other cell types that can need to be wider. For example,
-INTRODUCE and RENDEZVOUS cells also contain key material used for a
-handshake: if they need to grow larger, then .
+But there are other cell types that can need to be wider too. For
+example, `INTRODUCE` and `RENDEZVOUS` cells also contain key material
+used for a handshake: if handshakes need to grow larger, then so do
+these cells.
 
 This proposal describes an encoding for arbitrary "wide" relay cells,
 that can be used to send a wide variant of anything.
 
-To be clear, I do not propose that wide cells should actually be _allowed_
-for all relay cell types, but they can be extended as needed to support
-whatever types need to be "wide".
+To be clear, although this proposal describes a way that all relay
+cells can become "wide", I do not propose that wide cells should
+actually be _allowed_ for all relay cell types.
 
 # Proposal
 
-We add a new relay cell type: RELAY_FRAGMENT.  This cell type contains part
-of another relay cell.  A RELAY_FRAGEMENT cell can either introduce a new
+We add a new relay cell type: `RELAY_FRAGMENT`.  This cell type contains part
+of another relay cell.  A `RELAY_FRAGEMENT` cell can either introduce a new
 fragmented cell, or can continue one that is already in progress.
 
 The format of a RELAY_FRAGMENT body is one the following:
@@ -66,6 +68,11 @@ length under 499 bytes SHOULD cause the circuit to close, since that could
 fit into a non-fragmented RELAY cell.  Parties SHOULD enforce maximum lengths
 for cell types that they understand.
 
+All `RELAY_FRAGMENT` cells for the fragmented cell must have the
+same Stream ID.  (For those cells allowed above, the Stream ID is
+always zero.)  Implementations SHOULD close a circuit if they
+receive fragments with mismatched Stream ID.
+
 # Onion service concerns.
 
 We allocate a new extension for use in the ESTABLISH_INTRO by onion services,
@@ -76,28 +83,33 @@ contains:
           u16 max_len;
         }
 
+We allocate a new extension for use in the `ESTABLISH_RENDEZVOUS`
+cell, to indicate acceptance of wide `RENDEZVOUS2` cells.  This
+extension contains:
+
+        struct wide_rend2_ok {
+          u16 max_len;
+        }
+
+(Note that `ESTABLISH_RENDEZVOUS` cells do not currently have a an
+extension mechanism.  They should be extended to use the same
+extension format as `ESTABLISH_INTRO` cells, with extensions placed
+after the rendezvous cookie.)
+
 # Handling RELAY_EARLY
 
-The first fragment of each EXTEND cell should be tagged with RELAY_EARLY.
-The remaining fragments should not.  Relays should accept EXTEND cells if and
+The first fragment of each EXTEND cell should be tagged with `RELAY_EARLY`.
+The remaining fragments should not.  Relays should accept `EXTEND` cells if and
 only if their _first_ fragment is tagged with `RELAY_EARLY`.
 
 > Rationale: We could allow any fragment to be tagged, but that would give
 > hostile guards an opportunity to move RELAY_EARLY tags around and build a
 > covert channel.  But if we later move to a relay encryption method that
-> lets us authenticate RELAY_EARLY, we should require only that _any_
+> lets us authenticate RELAY_EARLY, we could then require only that _any_
 > fragment has RELAY_EARLY set.
 
 # Compatibility
 
 This proposal will require the allocation of a new 'Relay' protocol version,
 to indicate understanding of the RELAY_FRAGMENTED command.
-
-# Open questions
-
-What should be done with Stream IDs here?  All of the types listed above take
-a "0" Stream ID.
-
-Should ESTABLISH_RENDEZVOUS cells have extensions to indicate that they
-understand wide RENDEZVOUS cells?
 
