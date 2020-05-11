@@ -3,11 +3,12 @@
 
 ## Motivation
 
-Authorities still expose directory ports, and encourage relays to use
-them preferentially for uploading and downloading.  With the walking
-onions, we want authorities to be able to specify a list of link
-specifiers that can be used to contact them for uploads and downloads --
-but at present, there is no way to do that for directory ports.
+Authorities still expose directory ports, and encourage relays to
+use them preferentially for uploading and downloading.  With Walking
+Onions, we try to make every kind of "address" a link specifier --
+but there is currently no such way to specify directory ports.  We
+want authorities to be able to specify a list of link specifiers
+that can be used to contact them for uploads and downloads.
 
 ## Proposal
 
