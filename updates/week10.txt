@@ -1,0 +1,102 @@
+Walking Onions: week 10 update
+
+ On our current grant from the zcash foundation, I'm working on a
+full specification for the Walking Onions design.  I'm going to try to
+send out these updates once a week.
+
+My previous updates are linked below:
+
+ Week 1:
+   formats, preliminaries, git repositories, binary diffs,
+   metaformat decisions, and Merkle Tree trickery.
+
+   https://lists.torproject.org/pipermail/tor-dev/2020-March/014178.html
+
+ Week 2:
+   Specifying details of SNIP and ENDIVE formats, in CDDL.
+
+   https://lists.torproject.org/pipermail/tor-dev/2020-March/014181.html
+
+ Week 3:
+   Expanding ENDIVEs into SNIPs.
+
+   https://lists.torproject.org/pipermail/tor-dev/2020-March/014194.html
+
+Week 4:
+   Voting (part 1) and extending circuits.
+
+   https://lists.torproject.org/pipermail/tor-dev/2020-March/014207.html
+
+Week 5:
+   Voting (part 2)
+
+   https://lists.torproject.org/pipermail/tor-dev/2020-April/014218.html
+
+Week 6:
+   Editing, voting rules, and client behavior (part 1)
+
+   https://lists.torproject.org/pipermail/tor-dev/2020-April/014222.html
+
+Week 7:
+   Exit policies: How do they work?
+
+   https://lists.torproject.org/pipermail/tor-dev/2020-April/014232.html
+
+Week 8:
+   Onion services, relay honesty, migration and families
+
+   https://lists.torproject.org/pipermail/tor-dev/2020-April/014255.html
+
+Week 9:
+   (There was no week 9)
+
+== Now with an introduction
+
+I left the Introduction section of the proposal till late in the
+game; now I have it in place as a new section 1:
+
+   
+
+== Proposals into the pipeline
+
+I've also revised all of the "other proposals" that were logically
+separate from the rest of Walking Onions.  Three of them were ready
+to go to tor-dev, so I've added them as:
+
+ 318-limit-protovers.md Limit protover values to 0-63.
+ 319-wide-everything.md RELAY_FRAGMENT cells
+ 320-tap-out-again.md   Removing TAP usage from v2 onion services
+
+== In the home stretch
+
+I've got till the end of the month to wrap up this proposal, so
+let's see where we are.  We have a minimal viable proposal, I
+believe: if we were to sit down and start implementing, we would
+probably get most of the way based on what we have now.
+
+There are a few additional things I'd like to wrap up before I call
+the proposal done, however:
+
+* I've got all the necessary machinery written up for generating and
+  calculating indices, but before I actually move ahead, I should
+  fill in the details in sections 2 through 4.
+
+* One of the original goals of Walking Onions was to permit us to
+  move to alternative topologies where not every relay connects to
+  every other relay.  That's not something that we can include in
+  this proposal, since the research here is quite preliminary, but
+  I still want to prepare for it by making sure that clients can
+  handle getting SNIPs that say "this SNIP is only valid when given
+  by a relay of type X".
+
+* I should take another pass through the CDDL format to see whether
+  there are any opportunities to save a bunch of bytes.  I should
+  also fill in a couple of example SNIPs to see how big they are
+  with this proposal.
+
+* There are places all over the proposal where I have marked
+  uncertain points with XXXX.  I should go through them and resolve
+  them all before I call the proposal done.
+
+
+[INTRO] https://github.com/nmathewson/walking-onions-wip/blob/master/specs/01-intro.md
