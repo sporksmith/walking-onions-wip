@@ -937,12 +937,11 @@ and apply it.
     CopyDiffCommand = [
         OrigBytesCmdId,
         ; Range of bytes to copy from the original document.
-        ; Ranges include their starting byte.
-        start : uint,  ; XXXX we could have this be relative; would it help?
+        ; Ranges include their starting byte.  Ranges are indexed
+        ; from the end of the _last_ range that was copied.
+        offset : int,
         length : uint,
     ]
-    ; XXXX would it make sense to have relative/absolute versions of the
-    ; above to make the numbers smaller?
 
     ; The other diff comment is to insert some bytes from the diff.
     InsertDiffCommand = [
@@ -963,10 +962,16 @@ Applying a binary diff is simple:
 
     Initialize OUT to an empty bytestring.
 
+    Set OFFSET to 0.
+
     For each command C in D.commands, in order:
 
         If C begins with OrigBytesCmdId:
-            Append INP[C.start .. C.start+C.length] to OUT.
+            Increase "OFFSET" by C.offset
+            If OFFSET..OFFSET+C.length is not a valid index range in
+               INP, abort.
+            Append INP[OFFSET .. OFFSET+C.length] to OUT.
+            Increase "OFFSET" by C.length
 
         else: # C begins with InsertBytesCmdId:
             Append C.data to OUT.
