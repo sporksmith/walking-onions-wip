@@ -223,17 +223,17 @@ it reduces compressed diff size.
 Once the SNIPs are reconstructed, relays will hold them and serve them
 to clients.
 
-### What isn't in this document
+### What isn't in this section
 
-This document doesn't tell you what the different routing indices
+This section doesn't tell you what the different routing indices
 are or mean.  For now, we can imagine there being one index for
 guards, one for middles, and one for exits, and one for each hidden
 service directory ring. (See section 06 for more on regular indices,
 and section 07 for more on onion services.)
 
-This document doesn't give an algorithm for computing ENDIVEs from
+This section doesn't give an algorithm for computing ENDIVEs from
 votes, and doesn't give an algorithm for extracting SNIPs from an ENDIVE.
-Those come later. (See section 04.)
+Those come later. (See sections 03 and 04 respectively.)
 
 ## SNIPs
 
@@ -846,8 +846,11 @@ recommended versions, authority certificates, and so on.
     NetParams = { *tstr => int }
 
     PortClasses = {
-        tag : uint,  ; identifies which port class this is. Used for migration.
-        classes: [ IndexId, * PortList ], ; ordered list of the port classes.
+        ; identifies which port class grouping this is. Used to migrate
+        ; from one group of port classes to another.
+        tag : uint,
+        ; list of the port classes.
+        classes: { * IndexId => PortList },
     }
     PortList = [ *PortOrRange ]
      ; Either a single port or a low-high pair
