@@ -5,7 +5,7 @@ SPECDIR="$(dirname $0)/../specs"
 
 set -e
 
-for toplevel in ENDIVE SNIP BinaryDiff VoterCert RootDocument UnsignedSNIP; do
+for toplevel in ENDIVE SNIP BinaryDiff VoterCert ParamDoc UnsignedSNIP; do
     "${TOOL}" --check --toplevel "${toplevel}" "${SPECDIR}"/{02,05,06,AB}-*.md
 done
 for toplevel in VoteDocument; do
