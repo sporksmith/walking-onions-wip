@@ -10,13 +10,13 @@ VoteDocuments.
                            type:["tuple","uint","uint"] },
          voting-interval: { op: "Median", type:"uint" },
          snip-lifespan: {op: "Mode", type:["tuple","uint","uint","uint"] },
-         c-root-lifetime: {op: "Mode", type:["tuple","uint","uint","uint"] },
-         s-root-lifetime: {op: "Mode", type:["tuple","uint","uint","uint"] },
+         c-param-lifetime: {op: "Mode", type:["tuple","uint","uint","uint"] },
+         s-param-lifetime: {op: "Mode", type:["tuple","uint","uint","uint"] },
          cur-shared-rand: {op: "Mode", min_count: "qfield",
                              type:["tuple","uint","bstr"]},
          prev-shared-rand: {op: "Mode", min_count: "qfield",
                              type:["tuple","uint","bstr"]},
-      root: {
+      client-params: {
          recommend-versions: {op:"SetJoin", min_count:"qfield",type:"tstr"},
          require-protos: {op:"BitThreshold", min_count:"sqauth"},
          recommend-protos: {op:"BitThreshold", min_count:"qauth"},
@@ -25,6 +25,7 @@ VoteDocuments.
                      item_op:{op:"Median",min_vote:"qauth",type:"uint"},
                  },
       },
+      ; Use same value for server-params.
       relay: {
          meta: {
             desc: {op:"Mode", min_count:"qauth",tie_low:false,

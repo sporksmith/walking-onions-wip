@@ -388,12 +388,12 @@ published time, etc.
     ; have not changed in a while, only one policy is needed.  If port
     ; classes have changed recently, however, then SNIPs need to include
     ; each relay's position according to both the older and the newer policy
-    ; until older root documents become invalid.
+    ; until older network parameter documents become invalid.
     ExitPolicy = SinglePolicy / [ SinglePolicy, SinglePolicy ]
 
     ; Each single exit policy is a tagged bit array, whose bits are indexes
-    ; into the list of port classes in the root document with a corresponding
-    ; tag.
+    ; into the list of port classes in the network parameter
+    ; document with a corresponding tag.
     SinglePolicy = [
          ; Identifies which group of port classes we're talking about
          tag : uint,
@@ -583,9 +583,9 @@ for the full algorithm, see section 04.
         ; signed would take another step in the voting algorithm.
         snip_sigs : DetachedSNIPSignatures,
 
-        ; Signatures across the RootDocument pieces.  Note that as with the
+        ; Signatures across the ParamDoc pieces.  Note that as with the
         ; DetachedSNIPSignatures, these signature are not themselves signed.
-        root_doc: RootDocSignature,
+        param_doc: ParamDocSignature,
 
         ; extensions for later use. These are not signed.
         * tstr => any,
@@ -621,8 +621,8 @@ for the full algorithm, see section 04.
 
         ; Documents for clients/relays to learn about current network
         ; parameters.
-        client-root-doc : encoded-cbor .cbor ClientRootDocument,
-        relay-root-doc : encoded-cbor .cbor RelayRootDocument,
+        client-param-doc : encoded-cbor .cbor ClientParamDoc,
+        relay-param-doc : encoded-cbor .cbor RelayParamDoc,
 
         ; Definitions for index group.  Each "index group" is all
         ; applied to the same SNIPs.  (If there is one index group,
@@ -764,33 +764,34 @@ for the full algorithm, see section 04.
     ; It also helps diff tools know that they should look inside these
     ; objects.
 
-## Root documents
+## Network parameter documents
 
-Root documents take the place of the current consensus and
-certificates as a small document that clients and relays need to
-download periodically and keep up-to-date.  They are generated as
-part of the voting process, and contain fields like network
-parameters, recommended versions, authority certificates, and so on.
+Network parameter documents ("ParamDocs" for short) take the place of the
+current consensus and certificates as a small document that clients and
+relays need to download periodically and keep up-to-date.  They are generated
+as part of the voting process, and contain fields like network parameters,
+recommended versions, authority certificates, and so on.
 
-    ; A "root document" is like a tiny consensus that relays and clients can
-    ; use to get network parameters.
-    ; XXXX could use a better name here. How about ParamDoc?
-    RootDocument = [
-       sig : RootDocSignature,
-       ; Client-relevant portion of the root document. Everybody fetches this.
-       cbody : encoded-cbor .cbor ClientRootDocument,
-       ; Relay-relevant portion of the root document. Only relays need to
+    ; A "parameter document" is like a tiny consensus that relays and clients
+    ; can use to get network parameters.
+    ParamDoc = [
+       sig : ParamDocSignature,
+       ; Client-relevant portion of the parameter document. Everybody fetches
+       ; this.
+       cbody : encoded-cbor .cbor ClientParamDoc,
+       ; Relay-relevant portion of the parameter document. Only relays need to
        ; fetch this; the document can be validated without it.
-       ? sbody : encoded-cbor .cbor RelayRootDocument,
+       ? sbody : encoded-cbor .cbor RelayParamDoc,
     ]
-    RootDocSignature = [
+    ParamDocSignature = [
        ; Multisignature or threshold signature of the concatenation
        ; of the two digests below.
        SingleSig / MultiSig,
 
        ; Lifespan information.  As with SNIPs, this is included as part
        ; of the input to the hash algorithm for the signature.
-       ; Note that the lifespan of a root document is likely to be very long.
+       ; Note that the lifespan of a parameter document is likely to be
+       ; very long.
        LifespanInfo,
 
        ; how are c_digest and s_digest the digest computed?
@@ -801,7 +802,7 @@ parameters, recommended versions, authority certificates, and so on.
        s_digest : bstr,
     ]
 
-    ClientRootDocument = {
+    ClientParamDoc = {
        params : NetParams,
        ; List of certificates for all the voters.  These
        ; authenticate the keys used to sign SNIPs and ENDIVEs and votes,
@@ -822,7 +823,7 @@ parameters, recommended versions, authority certificates, and so on.
        * tstr => any,
     }
 
-    RelayRootDocument = {
+    RelayParamDoc = {
        params: NetParams,
 
        ; As in server-versions from dir-spec.txt
@@ -842,7 +843,7 @@ parameters, recommended versions, authority certificates, and so on.
     ;
     ; Note that there are separate client and relay NetParams now.
     ; Relays are expected to first check for a defintion in the
-    ; RelayRootDocument, and then in the ClientRootDocument.
+    ; RelayParamDoc, and then in the ClientParamDoc.
     NetParams = { *tstr => int }
 
     PortClasses = {

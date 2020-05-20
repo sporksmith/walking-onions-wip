@@ -17,7 +17,7 @@ should be deployed on the network.
    doing this.)
 
 3. Once a sufficient number of authorities are voting on ENDIVEs and
-   unlikely to downgrade, relays should begin serving root documents
+   unlikely to downgrade, relays should begin serving parameter documents
    and responding to walking-onion EXTEND and CREATE cells.  (Again,
    relay versions are public, so this doesn't leak.)
 

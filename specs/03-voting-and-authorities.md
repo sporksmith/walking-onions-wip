@@ -524,8 +524,8 @@ Encoding
     ; A location in the vote.  Each location here can only occur
     ; be referenced from later locations, or from itself.
     FieldSource = "M" ; Meta.
-               / "CR" ; ClientRoot.
-               / "SR" ; ServerRoot
+               / "CP" ; ClientParam.
+               / "SP" ; ServerParam.
                / "RM" ; Relay-meta
                / "RS" ; Relay-SNIP
                / "RL" ; Relay-legacy
@@ -614,10 +614,10 @@ description of how the vote is to be conducted, or both.
         ; not actually appear in the ENDIVE or consensus directory.
         meta : MetaSection .within VoteableSection,
 
-        ; Fields that appear in the client root document.
-        client-root : RootSection .within VoteableSection,
-        ; Fields that appear in the server root document.
-        server-root : RootSection .within VoteableSection,
+        ; Fields that appear in the client network parameter document.
+        client-params : ParamSection .within VoteableSection,
+        ; Fields that appear in the server network parameter document.
+        server-params : ParamSection .within VoteableSection,
 
         ; Information about each relay.
         relays : RelaySection,
@@ -702,10 +702,10 @@ description of how the vote is to be conducted, or both.
        voting-interval : uint,
        ; proposed lifetime for the SNIPs and endives
        snip-lifetime: Lifespan,
-       ; proposed lifetime for client root document
-       c-root-lifetime : Lifespan,
-       ; proposed lifetime for server root document
-       s_root_lifetime : Lifespan,
+       ; proposed lifetime for client params document
+       c-param-lifetime : Lifespan,
+       ; proposed lifetime for server params document
+       s-param-lifetime : Lifespan,
        ; Current and previous shared-random values
        ? cur-shared-rand : [ reveals : uint, rand : bstr ],
        ? prev-shared-rand : [ reveals : uint, rand : bstr ],
@@ -713,10 +713,10 @@ description of how the vote is to be conducted, or both.
        * VoteableStructKey => VoteableValue,
     };
 
-    ; A RootSection will be made into a RootDocument after voting;
+    ; A ParamSection will be made into a ParamDoc after voting;
     ; the fields are analogous.
-    RootSection = {
-       ? recommend-vversions : [ * tstr ],
+    ParamSection = {
+       ? recommend-versions : [ * tstr ],
        ? require-protos : ProtoVersions,
        ? recommend-protos : ProtoVersions,
        ? params : NetParams,
@@ -782,7 +782,7 @@ description of how the vote is to be conducted, or both.
     ; each section
     VotingRules = {
         meta : SectionRules,
-        root : SectionRules,
+        params : SectionRules,
         relay : RelayRules,
         indices : SectionRules,
     }
@@ -828,8 +828,8 @@ of this voting, such as:
       document.
 
 Once a consensus-method is decided, the next step is to compute the
-consensus for other sections in this order: `meta`, `client-root`,
-`server-root`, and `indices`.  The consensus for each is calculated
+consensus for other sections in this order: `meta`, `client-params`,
+`server-params`, and `indices`.  The consensus for each is calculated
 according to the operations given in the corresponding section of
 VotingRules.
 
@@ -873,8 +873,8 @@ schedule in both votes.  Authorities MUST reject noncompliant votes.
 If a consensus-method is negotiated that is high enough to support
 ENDIVEs, then the authorities proceed as follows.
 
-The RootSections are used verbatim as the bodies of the client-root-doc
-and relay-root-doc fields.
+The ParamSections are used verbatim as the bodies of the `client-params`
+and `relay-params` fields.
 > XXXX Additionally, we need to get VoterCerts from someplace.
 
 The fields that appear in each RelaySNIPInfo determine what goes into
