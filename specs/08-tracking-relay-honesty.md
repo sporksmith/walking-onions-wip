@@ -59,7 +59,7 @@ the client should not accept any snip with timestamp earlier than
 `T-Delta`.
 
 Values for N and Delta are controlled by network parameters
-(`enfoce-endive-dl-delay-after` and `allow-endive-dl-delay`
+(`enforce-endive-dl-delay-after` and `allow-endive-dl-delay`
 respectively in appendix C).  N should be about as long as we expect
 it to take for a single ENDIVE to propagate to all the relays on the
 network; Delta should be about as long as we would like relays to go
