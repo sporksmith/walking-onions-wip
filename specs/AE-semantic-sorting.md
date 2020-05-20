@@ -4,10 +4,10 @@
 Some voting operations assume a partial ordering on CBOR values.  We define
 such an ordering as follows:
 
-  * bstr and tstr items are sorted lexically, as if they were
+  * bstr and tstr items are sorted lexicographically, as if they were
     compared with a version of strcmp() that accepts internal NULs.
   * uint and int items are are sorted by integer values.
-  * arrays are sorted lexically by elements.
+  * arrays are sorted lexicographically by elements.
   * Tagged items are sorted as if they were not tagged.
   * Maps do not have any sorting order.
   * False proceeds true.

@@ -45,7 +45,7 @@ Ed25519Id.  We'll describe how to build the indices for each.
 Every index may either have an integer key, or a binary-string
 key. We define the "successor" of an integer index as the succeeding
 integer.  We define the "successor" of a binary string as the next
-binary string of the same length in lexical (memcmp) order.  We
+binary string of the same length in lexicographical (memcmp) order.  We
 define "predecessor" as the inverse of "successor".  Both these
 operations "wrap around" the index.
 
