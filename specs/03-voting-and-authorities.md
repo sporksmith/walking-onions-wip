@@ -864,11 +864,6 @@ If a legacy vote is present, then authorities MUST
 give the same list of consensus-methods and the same voting
 schedule in both votes.  Authorities MUST reject noncompliant votes.
 
-> XXXX It is somewhat desirable (see xxx-improved-242.md) to include all
-> the microdescriptors here as well.  That might seem expensive, but it
-> actually shouldn't be too bad because of compression and diffs.
-> Better analyze that, however.
-
 ## Computing an ENDIVE.
 
 > XXXX This is a sketch, not a complete specification.  I'll have to

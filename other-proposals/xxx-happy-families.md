@@ -3,11 +3,11 @@
 
 ## Problem statement.
 
-The current family interface allows well-behaved relays to
+The current family mechanism allows well-behaved relays to
 identify that they all belong to the same 'family', and should
 not be used in the same circuits.
 
-Right now, this interface works by having every family member
+Right now, families work by having every family member
 list every other family member in its server descriptor.  This
 winds up using O(n^2) space in microdescriptors, server
 descriptors, and RAM.  Adding or removing a server from the
@@ -16,7 +16,7 @@ settings.
 
 The is growth in size is not just a theoretical problem. Family
 declarations currently make up a little over 55% of the
-microdescriptors in the directory (around 24% after compression).
+microdescriptors in the directory--around 24% after compression.
 The largest family has around 270 members.  270 members times a
 160-bit hashed identifier leads to over 5 kilobytes per SNIP, which
 is much greater than we'd want to use.
@@ -26,16 +26,17 @@ requirements and providing a more detailed migration plan.
 
 ## Design overview.
 
-In this design, every family has a master "family ed25519" key.  A node
+In this design, every family has a master ed25519 "family key".  A node
 is in the family iff its server descriptor includes a certificate of its
-ed25519 identity key with the master ed25519 key.  The certificate
+ed25519 identity key with the family key.  The certificate
 format is as in the tor-certs.txt spec; we would allocate a new
 certificate type for this usage.  These certificates would need to
 include the signing key in the appropriate extension.
 
 Note that because server descriptors are signed with the node's
 ed25519 signing key, this creates a bidirectional relationship
-where nodes can't be put in families without their consent.
+between the two keys, so that nodes can't be put in families without
+their consent.
 
 ## Changes to router descriptors
 
@@ -52,12 +53,11 @@ descriptors that include it more than three times.
 
 ## Changes to microdescriptors
 
-We add a new entry to microdescriptors:
-    "family-keys"
+We add a new entry to microdescriptors: `family-keys`.
 
 This line contains one or more space-separated strings describing
 families to which the node belongs.  These strings MUST be sorted in
-lexical order.  Clients MUST NOT depend on any particular property
+lexicographic order.  Clients MUST NOT depend on any particular property
 of these strings.
 
 ## Changes to voting algorithm
@@ -70,10 +70,90 @@ server descriptor contains any valid family-cert lines.  For each
 valid family-cert in the server descriptor, they add a
 base-64-encoded string of that family-cert's signing key.
 
-Additionally, authorities include a "family-keys" line in each
-router section in their votes corresponding to such a relay.  When
-generating final microdescriptors using this method, the authorities
-use these lines to add entries to the microdescriptors' family lines:
+See also "deriving family lines from family-keys" below for an
+interesting but more difficult extension mechanism.
+
+## Relay configuration
+
+There are several ways that we could have relays include family
+certificates in their descriptors.
+
+The easiest would be putting the private family key on each relay,
+so that the relays could generate their own certificates.  This is
+easy to configure, but slightly risky: if the private key is
+compromised on any relay, anybody can claim membership in the
+family.  That isn't all that bad, however -- all the relays need to
+do in this event is to move to a new private family key.
+
+A more orthodox method would be to keep the private key somewhere
+offline, and using it to generate a certificate for each relay in
+the family as needed.  These certificates should be made with long
+lifetimes, and relays should warn when they are going to expire soon.
+
+## Changes to relay behavior
+
+When generating a router descriptor, each relay should continue to
+include a family line that lists every other relay it knows about
+that has used the family-key as itself.  This keeps the "family"
+lines up-to-date with "family-keys" lines for compliant relays.
+
+Relays should continue listing relays in their family lines if they
+have seen a relay with that identity using the same family-key at
+any time in the last 7 days.
+
+The presence of this line should be configured by a network
+parameter, `derive-family-line`.
+
+Relays whose family lines do not stay at least mostly in sync with
+their family keys should be marked invalid by the authorities.
+
+## Client behavior
+
+Clients should treat node A and node B as belonging to the same
+family if ANY of these is true:
+
+* The client has server descriptors or microdescriptors for A
+  and B, and A's descriptor lists B in its family line, and
+  B's descriptor lists A in its family line.
+
+* Client A has some combination of router descriptors and
+  microdescriptors for A and B, and they both contain the same entry
+  in their family-keys or family-cert.
+
+## Migration
+
+For some time, existing relays and clients will not support family
+certificates.  Because of this, we try to make sure above the
+well-behaved relays will list the same entries in both places.
+
+Once enough clients have migrated to using family
+certificates, authorities SHOULD disable `derive-family-line`.
+
+## Security
+
+Listing families remains as voluntary in this design as in today's
+Tor, though bad-relay hunters can continue to look for families that
+have not adopted a family key.
+
+A hostile relay family could list a "family" line that did not match
+its "family-certs" values.  However, the only reason to do so would
+be in order to launch a client partitioning attack, which is
+probably less valuable than the kinds of attacks that they could run
+by simply not listing families at all.
+
+## Appendix: deriving family lines from family-keys?
+
+As an alternative, we might declare that _authorities_ should keep
+family lines in sync with family-certs.  Here is a design sketch of
+how we might do that, but I don't think it's actually a good idea,
+since it would require major changes to the data flow of the
+voting system.
+
+In this design, authorties would include a "family-keys" line in
+each router section in their votes corresponding to a relay with any
+family-cert.  When generating final microdescriptors using this
+method, the authorities would use these lines to add entries to the
+microdescriptors' family lines:
 
 1. For every relay appearing in a routerstatus's family-keys, the
    relays calculate a consensus family-keys value by listing including
@@ -99,39 +179,43 @@ use these lines to add entries to the microdescriptors' family lines:
    digest of the microdescriptor listed in the original votes.  (This
    calculation is deterministic.)
 
-> XXXX This requires authorities to fetch microdescriptors they do
-> not have in order to replace their family lines.  Currently,
-> voting never requires an authority to fetch a microdescriptor from
-> another authority.  If we implement vote compression and diffs as in
-> the Walking Onions proposal, however, votes can start to include
-> microdescriptors more or less "for free".
+The problem with this approach is that authorities would have to s
+to fetch microdescriptors they do not have in order to replace their
+family lines.  Currently, voting never requires an authority to
+fetch a microdescriptor from another authority.  If we implement
+vote compression and diffs as in the Walking Onions proposal,
+however, we might suppose that votes could include microdescriptors
+directly.
 
-## Client behavior
+Still, this is likely more complexity than we want for a transition
+mechanism.
 
-Clients should treat node A and node B as belonging to the same
-family if ANY of these is true:
+## Appendix: Deriving family-keys from families??
 
-* The client has server descriptors or microdescriptors for A
-and B, and A's descriptor lists B in its family line, and
-B's descriptor lists A in its family line.
+We might also imagine that authorities could infer which families
+exist from the graph of family relationships, and then include
+synthetic "family-keys" entries for routers that belong to the same
+family.
 
-* The client has a server descriptor for A and one for B, and
-they both contain valid family-cert lines whose certs are
-signed by the family key.
+This has two challenges: first, to compute these synthetic family
+keys, the authorities would need to have the same graph of family
+relationships to begin with, which once again would require them to
+include the complete list of families in their votes.
 
-* The client has microdescriptors for A and B, and they both
-contain some string in common on their family-cert line.
+Secondly, finding all the families is equivalent to finding all
+maximal cliques in a graph.  This problem is NP-hard in its general
+case.  Although polynomial solutions exist for nice well-behaved
+graphs, we'd still need to worry about hostile relays including
+strange family relationships in order to drive the algorithm into
+its exponential cases.
 
-## Migration
+## Appendix: New assigned values
 
-For some time, existing relays and clients will not support family
-certificates.  Because of this, we ensure that every family encoded
-with certificates is also encoded in microdescriptor family lines.
-Note that once authorities support the algorithm above, relays using
-family certificates no longer need to include old-style family
-lists.
+We need a new assigned value for the certificate type used for
+family signing keys.
 
-Once enough relays and clients have migrated to using family
-certificates, authorities SHOULD add a new consensus method that
-stops including old fashioned family lines.
+## Appendix: New network parameters
+
+* `derive-family-line`: If 1, relays should derive family lines from
+  observed family-keys.  If 0, they do not. Min: 0, Max: 1. Default: 1.
 
