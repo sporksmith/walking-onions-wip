@@ -203,9 +203,9 @@ objects are valid from (PUBLISHED - PRE) through (PUBLISHED + POST).
 (The "PUBLISHED" time is provided so that we can more reliably tell
 which of two objects is more recent.)
 
-Later (see XXX), we'll explain measures to ensure that hostile relays do
-not take advantage of multiple overlapping SNIP lifetimes to attack
-clients.
+Later (see section 08), we'll explain measures to ensure that
+hostile relays do not take advantage of multiple overlapping SNIP
+lifetimes to attack clients.
 
 
 ### Design overview: how the formats work together
@@ -225,10 +225,11 @@ to clients.
 
 ### What isn't in this document
 
-This document doesn't tell you what the different routing indices are or
-mean.  For now, we can imagine there being one index for guards, one for
-middles, and one for exits, and one for each hidden service directory
-ring. (See section XXXX)
+This document doesn't tell you what the different routing indices
+are or mean.  For now, we can imagine there being one index for
+guards, one for middles, and one for exits, and one for each hidden
+service directory ring. (See section 06 for more on regular indices,
+and section 07 for more on onion services.)
 
 This document doesn't give an algorithm for computing ENDIVEs from
 votes, and doesn't give an algorithm for extracting SNIPs from an ENDIVE.
@@ -320,7 +321,7 @@ published time, etc.
         ; policies are treated as "deny all".
         ? 7 => ExitPolicy,
 
-        ; XXXX Properly speaking, there should be a CDDL 'cut'
+        ; NOTE: Properly speaking, there should be a CDDL 'cut'
         ; here, to indicate that the rules below sould only match
         ; if one if the previous rules hasn't matched.
         ; Unfortunately, my CDDL tool doesn't seem to support cuts.
