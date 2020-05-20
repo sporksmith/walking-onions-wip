@@ -804,9 +804,13 @@ timely and correctly signed by real authorities.  If they have two
 votes from an authority, they SHOULD issue a warning, and they
 should take the one that is published more recently.
 
-> XXXX Teor suggests that maybe we shouldn't warn about two votes
+> TODO: Teor suggests that maybe we shouldn't warn about two votes
 > from an authority for the same period, and we could instead have a
-> more resilient process here.  Most interesting...
+> more resilient process here, where authorities can update their
+> votes at various times over the voting period, up to some point.
+>
+> I'm not sure whether this helps reliability more or less than it risks it,
+> but it worth investigating.
 
 Next, the authorites determine the consensus method as they do today,
 using the field "consensus-method".  This can also be expressed as

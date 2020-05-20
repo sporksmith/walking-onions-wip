@@ -55,9 +55,11 @@ authorities MUST NOT generate any ENDIVEs that violate them.  If a
 relay encounters an ENDIVE that cannot be verified, then the ENDIVE
 cannot be expanded.
 
-> XXXX should there be some way to define an index as a subset of another
-> index, with elements weighted in different ways?  We'll find out later
-> whether that's beneficial.
+> NOTE: conceivably there should there be some way to define an index as a
+> subset of another index, with elements weighted in different ways?  In
+> other words, "Index a is index b, except multiply these relays by 0 and
+> these relays by 1.2".  We can keep this idea sitting around in case there
+> turns out to be a use for it.
 
 ### Raw indices
 
@@ -154,17 +156,6 @@ It requires that the sum of weights is no more than UINT32_MAX.
 This algorithm is a bit finicky in its use of division, but it
 results in a mapping onto 32 bit integers that completely covers the
 space of available indices.
-
-### Derived weighted indices
-
-> XXXX We could possibly simplify weighted indices by specifying that one
-> is derived from another by multiplying the weights by a vector of just a
-> few possible multipliers.  eg, "0, Wge, Wme, Wbe" as possible multiples.
-
-### Copying indices
-
-> XXXX We could possibly want a way to say "these two indices are the same",
-> here and in SNIPs.
 
 ### RSAId indices
 
