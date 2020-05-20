@@ -17,7 +17,7 @@ For example, we can imagine that a SNIP might say:
   signature algorithm.
 
 You can think of a SNIP as a signed combination of a routerstatus and
-a microdescriptor ... together with a little bit of the randomized
+a microdescriptor... together with a little bit of the randomized
 routing table from Tor's current path selection code, all wrapped
 in a signature.
 

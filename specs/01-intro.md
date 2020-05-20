@@ -19,12 +19,12 @@ clients' impact on the network grow quadratically, since the
 directory grows linearly with number of relays, and it is downloaded
 a number of times that grows linearly with the number of clients.
 Additionally, low-bandwidth clients and bootstrapping clients spend
-a disproportionate amount of their bandwidth bootstrapping and loading
+a disproportionate amount of their bandwidth loading
 directory information.
 
 With these drawbacks, why does Tor still require clients to
 download a directory?  It does so in order to prevent attacks that
-clients would be exposed to if they let somebody else choose their
+would be possible if clients let somebody else choose their
 paths through the network, or if each client chose its paths from a
 different subset of relays.
 
