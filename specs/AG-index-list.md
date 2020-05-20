@@ -19,16 +19,16 @@ for the earlier of the two "active" days. (The active days are
 today, and whichever other day is closest to the time at which the
 ENDIVE becomes active.)
 
-HSDirV3-early -- index for finding spots on the hsv3 directory ring
+HSDirV3-late -- index for finding spots on the hsv3 directory ring
 for the later of the two "active" days.
 
 Self -- A virtual index that never appears in an ENDIVE.  SNIPs with
 this index are unsigned, and occupy the entire index range.  This
 index is used with bridges to represent each bridge's uniqueness.
 
-> XXXX we also need an index for finding spots on the hsv3 directory
-> ring from tomorrow/yesterday.  Not sure if this means three
-> indices or two.
+Exit0..ExitNNN -- Exits that can connect to all ports within a given
+PortClass 0 through NNN.
+
 
 ### Indices I am not sure we need
 

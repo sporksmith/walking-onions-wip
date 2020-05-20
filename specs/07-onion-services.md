@@ -8,7 +8,9 @@ indices based on Ed25519 or RSA identity keys to retrieve this data.
 (The RSA identity ring is unchanging, whereas the Ed25519 ring
 changes daily based on the shared random value: for this reason, we
 have to compute two simultaneous indices for Ed25519 rings: one for
-the current day, and one for whichever other day is closest.)
+the earlier date that is potentially valid, and one for the later
+date that is potentially valid. We call these `hsv3-early` and
+`hsv3-late`.)
 
 Beyond the use of these indices, however, there are other steps that
 clients and services need to take in order to maintain their privacy.
