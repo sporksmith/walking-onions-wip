@@ -352,8 +352,7 @@ published time, etc.
     SoftwareDescription = [
       software : tstr,
       version : tstr,
-       ; XXXX we're not good at voting on variable-sized tuples. Drop "extra"?
-      ? extra : tstr
+      extra : tstr
     ]
 
     ; Protocol versions: after a bit of experimentation, I think
