@@ -202,6 +202,23 @@ the target relay.  Instead, it should respond with a TRUNCATED cell
 with the SNIP(s) that the client requested in one or more Extra_SNIP
 extensions.
 
+## Padding handshake cells to a uniform size
+
+To avoid leaking information, all CREATE/CREATED/EXTEND/EXTENDED
+cells SHOULD be padded to the same sizes.  In all cases, the amount
+of padding is controlled by a set of network parameters:
+"create-pad-len", "created-pad-len", "extend-pad-len" and
+"extended-pad-len".  These parameters determine the minimum length
+that the cell body or relay cell bodies should be.
+
+If a cell would be sent whose body is less than the corresponding
+parameter value, then the sender SHOULD pad the body by adding
+zero-valued bytes to the cell body.  As usual, receivers MUST ignore
+extra bytes at the end of cells.
+
+> ALTERNATIVE: We could specify a more complicated padding
+> mechanism, eg. 32 bytes of zeros then random bytes.
+
 ## Relay behavior: responding to CREATE
 XXX
 

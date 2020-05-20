@@ -40,9 +40,14 @@ Network parameters:
 
 In section 5:
 
-* CreatePadSize -- Clients SHOULD pad their CREATE cells and their EXTEND
-  cell bodies to this size.
+* create-pad-len -- Clients SHOULD pad their CREATE cell bodies
+  to this size.
 
-* CreatedPadSize -- Relays SHOULD pad their CREATED cells and their EXTENDED
-  cell bodies to this size.
+* created-pad-len -- Relays SHOULD pad their CREATED cell bodies to this
+  size.
 
+* extend-pad-len -- Clients SHOULD pad their EXTEND cell bodies to this
+  size.
+
+* extended-pad-len -- Relays SHOULD pad their EXTEND cell bodies to this
+  size.
