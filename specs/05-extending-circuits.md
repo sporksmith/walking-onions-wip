@@ -18,8 +18,7 @@ the SNIP that the client is using.
 First, we will require that proposal 249 (or some similar proposal
 for wide CREATE and EXTEND cells) is in place, so that we can have
 EXTEND cells larger than can fit in a single cell.  (See
-other-proposals/xxx-wide-everything.txt for an example proposal to
-supersede 249.)
+319-wide-everything.md for an example proposal to supersede 249.)
 
 We add new fields to the CREATE2 cell so that relays can send each
 other more information without interfering with the client's part of

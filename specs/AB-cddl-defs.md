@@ -62,13 +62,13 @@
        ; A medium-term key used for signing SNIPs, votes, and ENDIVEs.
        SNIPSigning : 0x11,
 
-       ; XXXX these are designed not to collide with the "list of certificate
+       ; These are designed not to collide with the "list of certificate
        ; types" or "list of key types" in cert-spec.txt
     )
 
     CertType = &(
        VotingCert : 0x12,
-       ; XXXX these are designed not to collide with the "list of certificate
+       ; These are designed not to collide with the "list of certificate
        ; types" in cert-spec.txt.
     )
 

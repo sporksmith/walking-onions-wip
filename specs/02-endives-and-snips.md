@@ -9,12 +9,12 @@ a single relay, plus proof from the directory authorities that the
 given relay occupies a given range in a certain routing index.
 For example, we can imagine that a SNIP might say:
 
-    * Relay X has the following IP, port, and onion key.
-    * In the routing index Y, it occupies positions 0x20002
-      through 0x23000.
-    * This SNIP is valid on 2020-12-09 00:00:00, for one hour.
-    * Here is a signature of all the above text, using a threshold
-      signature algorithm.
+* Relay X has the following IP, port, and onion key.
+* In the routing index Y, it occupies positions 0x20002
+  through 0x23000.
+* This SNIP is valid on 2020-12-09 00:00:00, for one hour.
+* Here is a signature of all the above text, using a threshold
+  signature algorithm.
 
 You can think of a SNIP as a signed combination of a routerstatus and
 a microdescriptor ... together with a little bit of the randomized
@@ -288,10 +288,6 @@ This representation is based on the routerstats and
 microdescriptor entries of today, but tries to omit a number of
 obsolete fields, including RSA identity fingerprint, TAP key,
 published time, etc.
-
-> XXXX I expect that we'll be making more changes to this type than
-> to any other type as we review and revise this design. It may turn
-> out to omit things that we need.
 
     ; A SNIPRouterData is a map from integer keys to values for
     ; those key.
@@ -613,8 +609,6 @@ for the full algorithm, see section 04.
             ; (If this value is 0, then only the root of the tree is signed.
             ; If this value is >= ceil(log2(n_leaves)), then every leaf is
             ; signed.).
-            ; XXXX Do we want to make this more flexible and allow signatures
-            ; XXXX at different depths?
             signature-depth : uint,
 
             ; What digest algorithm is used for calculating the signatures?
@@ -768,8 +762,6 @@ for the full algorithm, see section 04.
     ; should not be interpreted until after the signature is checked.
     ; It also helps diff tools know that they should look inside these
     ; objects.
-    ;
-    ; XXXX We should use encoded-cbor in more places, to help with diffs!
 
 ## Root documents
 
@@ -879,7 +871,7 @@ algorithm, but support more key types.
        ; signature algorithm.
        LifespanInfo,
        ; The keys and other data to be certified.
-       content : bstr .cbor CertContent,
+       content : encoded-cbor .cbor CertContent,
     ]
 
     ; The contents of the certificate that get signed.

@@ -29,7 +29,6 @@ VoteDocuments.
          meta: {
             desc: {op:"Mode", min_count:"qauth",tie_low:false,
                    type:["uint","bstr"] },
-            ; XXXX is "1" correct?
             flags: {op:"MapJoin", key_type:"tstr",
                     item_op:{op:"Mode",type:"bool"}},
             bw : {op:"Median", type:"uint" },

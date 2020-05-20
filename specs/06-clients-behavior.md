@@ -148,7 +148,7 @@ One new END cell extension is used for delegated verifiable selection:
     }
 
 This design may require END cells to become wider; see
-other-proposals/xxx-wide-everything.txt for an example proposal to
+319-wide-everything.md for an example proposal to
 supersede propose 249 and allow more wide cell types.
 
 ## Universal path restrictions

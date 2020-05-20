@@ -146,11 +146,12 @@ with a link specifier.
 xxx-happy-families.md lets families be represented with a single
 identifier, rather than a long list of keys
 
-xxx-limit-protovers.md restricts the allowed version numbers for
+318-limit-protovers.md restricts the allowed version numbers for
 each subprotocol to the range 0..63.
 
-xxx-tap-out-again.md attempts to remove the need for TAP keys in
+319-wide-everything.md gives a general mechanism for splitting relay
+commands across more than one cell.
+
+320-tap-out-again.md attempts to remove the need for TAP keys in
 the HSv2 protocol.
 
-xxx-wide-everything.md gives a general mechanism for splitting relay
-commands across more than one cell.

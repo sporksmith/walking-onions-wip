@@ -97,10 +97,13 @@ ntor keys instead of TAP, or we could provide a way for TAP keys to
 be advertised with walking onions.
 
 The first option would appear to be far simpler. See
-proposal draft xxx-tap-out-again.txt.
+proposal draft 320-tap-out-again.md.
 
 The latter option would require us to put RSA-1024 keys in SNIPs, or
 put a digest of them in SNIPs and give some way to retrieve them
 independently.
 
+(Of course, it's possible that we will have v2 onion services
+deprecated by the time Walking Onions are implemented.  If so, that
+will simplify matters a great deal too.)
 
