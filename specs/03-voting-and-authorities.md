@@ -656,12 +656,48 @@ description of how the vote is to be conducted, or both.
 
     ; An indexsection says how we think indices should be built.
     IndexSection = {
-        IndexId => [ * IndexRule ],
+        * IndexId => bstr .cbor GenericIndexRule,
     }
-    ; This should receive parameters and some way to group indices.XXXXX
-    IndexRule = tstr
-
+    ; A mechanism for building a single index.  Actual values need to
+    ; be within RecognizedIndexRule or the authority can't complete the
+    ; consensus.
+    GenericIndexRule = {
+        type: tstr,
+        * tstr => any
+    }
+    RecognizedIndexRule = EdIndex / RSAIndex / BWIndex / WeightedIndex
+    ; The values in an RSAIndex are derived SHA3 digests of Ed25519 keys.
+    EdIndex = {
+        type: "ed-id",
+        prefix: bstr,
+        suffix: bstr
+    }
+    ; The values in an RSAIndex are derived from RSA keys.
+    RSAIndex = {
+        type: "rsa-id"
+    }
+    ; A BWIndex is built by taking some uint-valued field referred to by
+    ; SourceField from all the relays that have all of required_flags set.
+    BWIndex = {
+        type: "bw",
+        bwfield: SourceField,
+        require_flags: FlagSet,
+    }
+    FlagSet = [ *tstr ] ; A flag can be prefixed with "!" to indicate negation.
+    ; A WeightedIndex applies a set of weights to a BWIndex based on which
+    ; flags the various routers have.  Relays that match a set of flags have
+    ; their weights multiplied by the corresponding WeightVal.
+    WeightedIndex = {
+        type: "weighted",
+        source: BwIndex,
+        weight: { * FlagSet => WeightVal }
+    }
+    ; A WeightVal is either an integer to multiply bandwidths by, or a
+    ; string from the Wgg, Weg, Wbm, ... set as documented in dir-spec.txt,
+    ; or a reference to an earlier field.
+    WeightVal = uint / tstr / SourceField
     VoteableValue =  MapVal / ListVal / SimpleVal
+
     ; A "VoteableSection" is something that we apply part of the
     ; voting rules to.  When we apply voting rules to these sections,
     ; we do so without regards to their semantics.  When we are done,
