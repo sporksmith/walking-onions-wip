@@ -100,7 +100,7 @@ index, using the following coding for its contents:
 
     /* Using trunnel syntax here. */
     struct snip_index {
-        u16 index_id; // which index is it? XXXX what if this is a bstr??
+        u32 index_id; // which index is it?
         u8 index[]; // extends to the end of the link specifier.
     }
 

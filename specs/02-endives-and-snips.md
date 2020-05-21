@@ -425,7 +425,10 @@ the relay.
 
     ; We'll define the different index ranges as we go on with
     ; these specifications.
-    IndexId = int
+    ;
+    ; IndexId values over 65535 are reserved for extensions and
+    ; experimentation.
+    IndexId = uint32
 
     ; An index range extends from a minimum to a maximum value.
     ; These ranges are _inclusive_ on both sides.  If 'hi' is less
