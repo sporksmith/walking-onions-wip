@@ -51,12 +51,9 @@ public key for the bridge.  Bridges behave like guards, except that they
 are not listed in any directory or ENDIVE, and so cannot prove
 membership when the client connects to them.
 
-On the first circuit through each channel to a bridge, the client asks
-that bridge for a SNIP listing itself.  The bridge responds with a
-self-created unsigned SNIP:
-
-> XXX See note above about choosing which index.  These come from the
-> Self index.
+On the first circuit through each channel to a bridge, the client asks that
+bridge for a SNIP listing itself in the `Self` index.  The bridge responds
+with a self-created unsigned SNIP:
 
      ; This is only valid when received on an authenticated connection
      ; to a bridge.
@@ -164,19 +161,16 @@ Clients SHOULD discard a circuit if, after it has been built, they find
 that it contains the same relay twice, or it contains more than one
 relay from the same family or from the same subnet.
 
-Clients MAY remember the SNIPs they have received, and for some time
-after, not choose any index that would violate a path restriction.
-
-> XXXX "For some time after" is nebulous. Can we be specific? "For the
-> life of the SNIP isn't quite right. Do we need a "fresh-until" time
-> after all?
+Clients MAY remember the SNIPs they have received, and for some the time that
+the SNIP is maximally recent, not choose any index that would violate a path
+restriction.
 
 > NOTE: We should continue to monitor the fraction of paths that are
 > rejected in this way.  If it grows too high, we either need to amend
 > the path selection rules, or change authorities to e.g. forbid more
 > than a certain fraction of relay weight in the same family or subnet.
 
-> XXXX: It might be a good idea, if these restrictions truly are
+> FUTURE WORK: It might be a good idea, if these restrictions truly are
 > 'universal', for relays to have a way to say "You wouldn't want that
 > index; I am giving you the next one in sequence" and send back both
 > SNIPs.  This would need some signaling in the EXTEND/EXTENDED cells.
@@ -188,8 +182,6 @@ those that are in ordinary use.  For example, a user might want to enter
 only from US relays, but never exit from US.  Or they might be
 configured with a short list of vanguards to use in their second
 position.
-
-> XXXX verify how exactly vanguards are set up today.
 
 ### Handling "light" restrictions
 
@@ -210,8 +202,8 @@ indices that list relays by IP, by RSAId, or by Ed25519 Id.  Clients
 could then use those indices to remotely retrieve SNIPs, and then use
 those SNIPs to connect to their selected relays.
 
-> XXXX The above is too "couldish"; I should either specifiy it or turn it
-> into future work.
+> Future work: we need to decide how many of the above functions to actually
+> support.
 
 ### Recognizing too-heavy restrictions
 
@@ -229,6 +221,5 @@ is above a certain threshold, they SHOULD issue a warning; if it is
 above some other threshold, they SHOULD refuse to build circuits
 entirely.
 
-> XXXX Should I be specific about thresholds? Can I? 1/3 and 2/3 seem
-> reasonable, but I haven't thought through the consequences completely.
-
+> Future work: determine which fraction appears in practice, and use that to
+> set the appropriate thresholds above.
