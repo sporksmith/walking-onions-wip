@@ -738,6 +738,10 @@ description of how the vote is to be conducted, or both.
        c-param-lifetime : Lifespan,
        ; proposed lifetime for server params document
        s-param-lifetime : Lifespan,
+       ; signature depth for ENDIVE
+       signature-depth : uint,
+       ; digest algorithm to use with endive.
+       signature-digest-alg : DigestAlgorithm,
        ; Current and previous shared-random values
        ? cur-shared-rand : [ reveals : uint, rand : bstr ],
        ? prev-shared-rand : [ reveals : uint, rand : bstr ],
@@ -917,28 +921,72 @@ sectoins above into an ENDIVE.
 The ParamSections from the consensus are used verbatim as the bodies of the
 `client-params` and `relay-params` fields.
 
-The fields that appear in each RelaySNIPInfo determine what goes into
-the SNIPRouterData for each relay.  Extra fields may be copied from the
-Meta section into the ENDIVERouterData depending on the meta
-document. (XXXX spec this)
+The fields that appear in each RelaySNIPInfo determine what goes
+into the SNIPRouterData for each relay. To build the relay section,
+first decide which relays appear according to the `key_min_count`
+field in the RelayRules.  Then collate relays across all the votes
+by their keys, and see which ones are listed.  For each key that
+appears in at least `key_min_count` votes, apply the RelayRules to
+each section of the RelayInfos for that key.
 
-The sig_params section is derived from fields in the meta
-section. (XXXX spec this)
+The sig_params section is derived from fields in the meta section.
+Fields with identical names are simply copied; Lifespan values are
+copied to the corresponding documents (snip-lifetime as the lifespan
+for SNIPs and ENDIVEs, and c and s-param-lifetime as the lifespan
+for ParamDocs).
+
+To compute the signature nonce, use the signature digest algorithm
+to compute the digest of each input vote body, sort those digests
+lexicographically, and concatenate and hash those digests again.
 
 Indices are built according to named IndexRules, and grouped accoring to
-fields in the meta section. (XXXX spec this once we know what indices we
-need.)  Adding new IndexRule currently requires a new consensus-method.
+fields in the meta section.  See "Constructing Indices" below.
 
-> XXXX Be explicit about lifespans in the vote and how they determine the
-> lifespan of the legacy consensus, the lifespan of the ENDIVE, and the
-> lifespan of the SNIPs.
+> (At this point extra fields may be copied from the Meta section of
+> each RelayInfo into the ENDIVERouterData depending on the meta
+> document; we do not, however, currently specify any case where this
+> is done.)
 
-> XXXX Explain how to compute the nonce(s?) used for signing the consensus
-> and its SNIPs.
+### Constructing indices
+
+After having build the list of relays, the authorities construct and
+encode the indices that appear in the endives.  The voted-upon
+GenericIndexRule values in the IndexSection of the consensus say how
+to build the indices in the endive, as follows.
+
+An `EdIndex` is built using the IndexType_Ed25519Id value, with the
+provided prefix and suffix values.  Authorities don't need to expand
+this index in the ENDIVE, since the relays can compute it
+deterministically.
+
+An `RSAIndex` is built using the IndexType_RSAId type.  Authorities
+don't need to expand this index in the ENDIVE, since the relays can
+compute it deterministically.
+
+A `BwIndex` is built using the IndexType_Weighted type. Each relay a
+weight equal to some specified bandwidth field in its consensus
+RelayInfo.  If a relay is missing any of the `required_flags` in
+its meta section, or if it does not have the specified bandwidth
+field, that relay's weight becomes 0.
+
+A `WeightedIndex` is built by computing a BwIndex, and then
+transforming each relay in the list according to the flags that it
+has set.  Relays that match any set of flags in the WeightedIndex
+rule get their bandwidths multiplied by _all_ WeightVals that
+apply.  Some WeightVals are computed according to special rules,
+such as "Wgg", "Weg", and so on.  These are taken from the current
+dir-spec.txt.
+
+For both BwIndex and WeightedIndex values, authorities MUST scale
+the computed outputs so that no value is greater than UINT32_MAX;
+they MUST do by shifting all values right by lowest number of bits
+that achieves this.
+
+> We could specify a more precise algorithm, but this is simpler.
 
 ## Computing a legacy consensus.
 
-> XXXX This is a point where I will need to come back once we have all
+> X This is a point where I will need to come back once we have all
 > the fields in the SNIPs and the votes straightened out, and specify
 > each and every field.  The main idea here is that we should be able to
 > define a not-too-hard deterministic transformation from the consensus
