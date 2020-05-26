@@ -29,9 +29,10 @@ than one guard retrieved from the same third hop on the same
 circuit. (If it did, that third hop would realize that some client using
 guard A was also using guard B.)
 
-> XXXX Is this threat real?  It seems to me that knowing one or two
-> guards at a time in this way is not a big deal, though knowing the
-> whole set would sure be bad.
+> Future work: Is this threat real?  It seems to me that knowing one or two
+> guards at a time in this way is not a big deal, though knowing the whole
+> set would sure be bad.  However, we shouldn't optimize this kind of
+> defense away until we know that it's actually needless.
 
 If a client's network connection or choice of entry nodes is heavily
 restricted, the client MAY request more than one guard at a time, but if
