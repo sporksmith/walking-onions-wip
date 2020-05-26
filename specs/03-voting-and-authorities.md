@@ -666,9 +666,10 @@ description of how the vote is to be conducted, or both.
         * tstr => any
     }
     RecognizedIndexRule = EdIndex / RSAIndex / BWIndex / WeightedIndex
-    ; The values in an RSAIndex are derived SHA3 digests of Ed25519 keys.
+    ; The values in an RSAIndex are derived from digests of Ed25519 keys.
     EdIndex = {
         type: "ed-id",
+        alg : DigestAlgorithm,
         prefix: bstr,
         suffix: bstr
     }
