@@ -652,8 +652,9 @@ description of how the vote is to be conducted, or both.
 
     ; An indexsection says how we think indices should be built.
     IndexSection = {
-        * IndexId => bstr .cbor GenericIndexRule,
+        * IndexId => bstr .cbor [ IndexGroupId, GenericIndexRule ],
     }
+    IndexGroupId = uint
     ; A mechanism for building a single index.  Actual values need to
     ; be within RecognizedIndexRule or the authority can't complete the
     ; consensus.
@@ -679,7 +680,13 @@ description of how the vote is to be conducted, or both.
         bwfield: SourceField,
         require_flags: FlagSet,
     }
-    FlagSet = [ *tstr ] ; A flag can be prefixed with "!" to indicate negation.
+    ; A flag can be prefixed with "!" to indicate negation.  A flag
+    ; with a name like P@X indicates support for port class 'X' in its
+    ; exit policy.
+    ;
+    ; FUTURE WORK: perhaps we should add more structure here and it
+    ; should be a matching pattern?
+    FlagSet = [ *tstr ]
     ; A WeightedIndex applies a set of weights to a BWIndex based on which
     ; flags the various routers have.  Relays that match a set of flags have
     ; their weights multiplied by the corresponding WeightVal.
@@ -797,8 +804,6 @@ description of how the vote is to be conducted, or both.
        ; Mapping from consensus version to microdescriptor digests
        ; and microdescriptors.
        ? mds : [ *Microdesc ],
-       ; Sha1 descriptor digest.  For use in "ns" flavored consensus.
-       ? sha1-desc : bstr,
     }
 
     ; Microdescriptor votes now include the digest AND the
@@ -984,35 +989,41 @@ that achieves this.
 
 > We could specify a more precise algorithm, but this is simpler.
 
+Indices with the same IndexGroupId are placed in the same index
+group; index groups are ordered numerically.
+
 ## Computing a legacy consensus.
 
-> X This is a point where I will need to come back once we have all
-> the fields in the SNIPs and the votes straightened out, and specify
-> each and every field.  The main idea here is that we should be able to
-> define a not-too-hard deterministic transformation from the consensus
-> fields to the body of a legacy consensus.  That means that every
-> field that goes into a legacy consensus needs to occur _somewhere_.
-> The RelayLegacyInfo section can _only_ be used for making legacy
-> consensuses.
+When using a consensus method that Supports Walking Onions, the
+legacy consensus is computed from the same data as the ENDIVE.
+Because the legacy consensus format will be frozen once Walking
+Onions is finalized, we specify this transformation directly, rather
+than in a more extensible way.
+
+The published time and descriptor digest are used directly.
+Microdescriptor negotiation proceeds as before.  Bandwidths,
+measured bandwidths, descriptor digests, published times, flags, and
+rsa-id values are taken from the RelayMetaInfo section.  Addresses,
+protovers, versions, and so on are taken from the RelaySNIPInfo. Header
+fields are all taken from the corresponding header fields in the
+MetaSection or the ClientParamsSection. All parameters are copied
+into the net-params field.
 
 ## Managing indices over time.
 
-> XXX index groups could be fixed; that might be best at first. we could
-> reserve new methods for allocating new ones.
+> The present voting mechanism does not do a great job of handling
+> the authorities
 
-> xxxx each index group gets a set of tags: must have all tags to be in the
-> group.  Additionally has set of weight/tag-set pairs: if you have
-> all tags in that set, you get multiplied by the weight.  allow
-> multiple possible source probabilities.
+The semantic meaning of most IndexId values, as understood by
+clients should remain unchanging; if a client uses index 6 for
+middle nodes, 6 should _always_ mean "middle nodes".
 
-> XXXX We should try to build bandwidth-weighted indices and similar to be
-> "stable" over time.  That is, if you're in position X right now, you should
-> still be "near" position X later.  This helps mitigate attacks based
-> on relays giving you a choice of different SNIPs.
-
-> XXXX exits present a special issue, since if we change the port
-> classes we need to add a new set of indeces and keep the old ones for
-> a while.
+If an IndexId is going to change its meaning over time, it should
+_not_ be hardcoded by clients; it should instead be listed in the
+NetParams document, as the exit indices are in the `port-classes`
+field. (See also section 6 and appendix AH.)  If such a field needs
+to change, it also needs a migration method that allows clients with
+older and newer parameters documents to exist at the same time.
 
 ## Bandwidth analysis
 

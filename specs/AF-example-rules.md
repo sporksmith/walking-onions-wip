@@ -64,8 +64,10 @@ VoteDocuments.
            ; countrycode
            6 : { op:"Mode", type="tstr" } ,
 
-           ; 7: exitpolicy.  Return to this after more exit consideration.
-           ; 7 : exitpol
+           ; 7: exitpolicy.
+           7 : { op: "CborDerived",
+                 item-op: { op: "DerivedFrom", fields:[["RM","desc"],["CP","port-classes"]],
+                          rule:{op:"Mode",type="bstr" } } },
         },
         legacy : {
           "sha1-desc" : { op:"DerivedFrom",
