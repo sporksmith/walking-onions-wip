@@ -918,10 +918,6 @@ schedule in both votes.  Authorities MUST reject noncompliant votes.
 
 ## Computing an ENDIVE.
 
-> XXXX This is a sketch, not a complete specification.  I'll have to
-> come back here once I've been through a revision on all the other
-> design pieces.
-
 If a consensus-method is negotiated that is high enough to support
 ENDIVEs, then the authorities proceed as follows to transform the consensus
 sectoins above into an ENDIVE.
