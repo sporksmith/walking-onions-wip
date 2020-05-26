@@ -101,6 +101,7 @@ index, using the following coding for its contents:
     /* Using trunnel syntax here. */
     struct snip_index {
         u32 index_id; // which index is it?
+        u8 nth; // how many indices should be skipped/included?
         u8 index[]; // extends to the end of the link specifier.
     }
 
@@ -117,28 +118,17 @@ This link specifier SHOULD NOT be used along with IPv4, IPv6, RSA ID, or
 Ed25519 ID link specifiers.  Relays receiving such a link along with
 a snip_index link specifier SHOULD reject the entire EXTEND request.
 
-We add a second new link specifier [hex id here] for use when
-contacting hidden service directories:
+If `nth` is nonzero, then link specifier means "the n'th SNIP after
+the one defined by the SNIP index."  A relay MAY reject this request
+if `nth` is greater than 4.  If the relay does not reject this
+request, then it MUST include all snips between `index` and the one
+that was actually used in an Extra_Snip extension.  (Otherwise, the
+client would not be able to verify that it had gotten the correct
+SNIP.)
 
-    /* Trunnel syntax again. */
-    struct snip_span {
-        u8 nth;
-        u16 index_id;
-        u8 index[];
-    }
-
-This link specifier means "the n'th SNIP after the one defined by
-the SNIP index."   A relay MAY reject this request if `nth` is greater
-than 4.  If the relay does not reject this request, then it MUST
-include all snips between `index` and the one that was actually used
-in an Extra_Snip extension.  (Otherwise, the client would not be
-able to verify that it had gotten the correct SNIP.)
-
-> XXX I'm avoiding use of cbor for these types. Is that correct? I
->  think so, on the theory that there is no reason here, and we already use
->  trunnel-like objcts for this purpose.
-
-> XXXX I could combine the two link specifiers above, and maybe I should.
+> I've avoided use of CBOR for these types, under the assumption that we'd
+> like to use CBOR for directory stuff, but no more.  We already have
+> trunnel-like objects for this purpose.
 
 ## Modified ntor handshake
 
@@ -169,7 +159,12 @@ otherwise, all fields are computed as described in tor-spec.
 When this handshake is in use, the hash function is SHA3-256 and keys
 are derived using SHAKE-256, as in rend-spec-v3.txt.
 
-> XXXX make sure that this isn't too expensive.
+> Future work: We may wish to update this choice of functions
+> between now and the implementation date, since SHA3 is a bit
+> pricey.  Perhaps one of the BLAKEs would be a better choice.  If
+> so, we should use it more generally.  On the other hand, the
+> presence of public-key operations in the handshake _probably_
+> outweighs the use of SHA3.
 
 We will have to give this version of the handshake a new handshake
 type.
@@ -183,9 +178,8 @@ containing the SNIP in an extension.
 If a CREATE2 cell fails and a SNIP was requested, then instead of
 sending a DESTROY cell, the relay SHOULD respond with a CREATED2
 cell containing 0 bytes of handshake data, and the SNIP in an
-extension.
-
->XXXX what do relays do here now?
+extension.  Clients MAY re-extend or close the circuit, but should
+not leave it dangling.
 
 ## NIL handshake type
 
@@ -220,6 +214,7 @@ extra bytes at the end of cells.
 > mechanism, eg. 32 bytes of zeros then random bytes.
 
 ## Relay behavior: responding to CREATE
+
 XXX
 
 ## Relay behavior: responding to EXTEND

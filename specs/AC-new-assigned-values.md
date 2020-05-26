@@ -15,8 +15,6 @@ Link specifiers:
 
 * We need a link specifier for extend-by-index.
 
-* We need a link specifier for extend-by-index span.
-
 * We need a link specifier for dirport URL.
 
 Certificate Types and Key Types:
