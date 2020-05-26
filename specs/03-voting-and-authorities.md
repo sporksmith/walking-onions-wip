@@ -415,13 +415,16 @@ Encoding:
        item_op : ListOp / SimpleOp
     }
 
-> XXXX Explain that  key_min_count is relevant in cases like when
-> key_min_count==1 but min count in item_op is more like qfield.
-
 First, discard all votes that are not maps.  Then consider the set
 of keys from each vote as if they were a list, and apply
 `SetJoin[KEY_MIN_COUNT,KEY_TYPE]` to those lists.  The resulting list
 is a set of keys to consider including in the output map.
+
+> We have a separate `key_min_count` field, even if `item_op` has
+> its own `min_count` field, because some min_count values (like
+> `qfield`) depend on the overall number of votes for the field.
+> Having `key_min_count` lets us specify rules like "the FOO of all
+> votes on this field, if there are at least 2 such votes."
 
 For each key in the output list, run the sub-voting operation
 `ItemOperation` on the values it received in the votes.  Discard all
