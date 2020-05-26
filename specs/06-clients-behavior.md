@@ -44,11 +44,6 @@ opening a channel, clients should ask that guards for a fresh SNIP for
 itself, to ensure that the guard is still listed in the consensus, and
 to keep the client's information up-to-date.
 
-> XXXX The client can ask for a snip by including a SNIP_Request=1
-> extension in its create cell.  But what if the relay is listed in more
-> than one SNIP?  If it is, then how does the client ask for the one
-> with the Guard index?
-
 ## Using bridges
 
 As now, clients are configured to use a bridge by using an address and a

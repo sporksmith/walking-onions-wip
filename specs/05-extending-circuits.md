@@ -83,10 +83,11 @@ These extensions are defined by this proposal:
           can be sent back from the extending relay when the client
           specifies multiple indices.
 
-  [04] -- SNIP_Request -- a single byte, sent away from the client.
-          If the byte is 0, the originator does not want a SNIP.  If
-          the byte is 1, the originator does want a SNIP.  Other
-          values are unspecified and SHOULD be ignored.
+  [04] -- SNIP_Request -- a 32-bit index number, or a single zero
+          byte, sent away from the client.  If the byte is 0, the
+          originator does not want a SNIP.  Otherwise, the
+          originator does want a SNIP containing the router and the
+          specified index.  Other values are unspecified.
 
           By default, EXTENDED2 cells are sent with a SNIP iff the
           EXTENDED2 cell used a snip_index link specifier, and
