@@ -809,7 +809,7 @@ recommended versions, authority certificates, and so on.
        ; List of certificates for all the voters.  These
        ; authenticate the keys used to sign SNIPs and ENDIVEs and votes,
        ; using the authorities longest-term identity keys.
-       voters : [ + VoterCert ],
+       voters : [ + bstr .cbor VoterCert ],
 
        ; A division of exit ports into "classes" of ports.
        port-classes: PortClasses,

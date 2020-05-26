@@ -23,7 +23,8 @@ VoteDocuments.
          params: {op:"MapJoin",key_min_count:"qauth",
                      keytype:"tstr",
                      item_op:{op:"Median",min_vote:"qauth",type:"uint"},
-                 },
+                     },
+         certs: {op:"SetJoin",min_count:1, type: 'bstr'},
       },
       ; Use same value for server-params.
       relay: {

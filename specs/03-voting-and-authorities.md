@@ -643,10 +643,6 @@ description of how the vote is to be conducted, or both.
         ; contact information for this authority.
         ? contact : tstr,
 
-        ; certificates tying this authority's long-term identity
-        ; key(s) to the signing keys it's using to vote.
-        certs : [ + VoterCert ] ,
-
         ; legacy certificate in format given by dir-spec.txt.
         ? legacy-cert : tstr,
 
@@ -752,6 +748,7 @@ description of how the vote is to be conducted, or both.
     ; A ParamSection will be made into a ParamDoc after voting;
     ; the fields are analogous.
     ParamSection = {
+       ? certs : [ 1*2 bstr .cbor VoterCert ],
        ? recommend-versions : [ * tstr ],
        ? require-protos : ProtoVersions,
        ? recommend-protos : ProtoVersions,
@@ -835,10 +832,13 @@ description of how the vote is to be conducted, or both.
 
 ## Computing a consensus.
 
-To compute a consensus, the relays first verify that all the votes are
-timely and correctly signed by real authorities.  If they have two
-votes from an authority, they SHOULD issue a warning, and they
-should take the one that is published more recently.
+To compute a consensus, the authorities first verify that all the votes are
+timely and correctly signed by real authorities.  This includes
+validating all invariants stated here, and all internal documents.
+
+If they have two votes from an authority, authorities SHOULD issue a
+warning, and they should take the one that is published more
+recently.
 
 > TODO: Teor suggests that maybe we shouldn't warn about two votes
 > from an authority for the same period, and we could instead have a
@@ -911,11 +911,11 @@ schedule in both votes.  Authorities MUST reject noncompliant votes.
 > design pieces.
 
 If a consensus-method is negotiated that is high enough to support
-ENDIVEs, then the authorities proceed as follows.
+ENDIVEs, then the authorities proceed as follows to transform the consensus
+sectoins above into an ENDIVE.
 
-The ParamSections are used verbatim as the bodies of the `client-params`
-and `relay-params` fields.
-> XXXX Additionally, we need to get VoterCerts from someplace.
+The ParamSections from the consensus are used verbatim as the bodies of the
+`client-params` and `relay-params` fields.
 
 The fields that appear in each RelaySNIPInfo determine what goes into
 the SNIPRouterData for each relay.  Extra fields may be copied from the
