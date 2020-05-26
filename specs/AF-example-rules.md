@@ -38,7 +38,9 @@ VoteDocuments.
             rsa-id : {op:"Mode", type:"bstr"},
         },
         snip: {
-           ; 0: Ed25519 key is handled specially. XXX we'll need to specify it.
+           ; ed25519 key is handled as any other value.
+           0 : { op:"DerivedFrom", fields:[["RM","desc"]],
+                 rule:{op:"Mode",type="bstr"} },
 
            ; ntor onion key.
            1 : { op:"DerivedFrom", fields:[["RM","desc"]],
@@ -82,6 +84,6 @@ VoteDocuments.
         }
       }
       indices: {
-        ; XXXXX specify this once index generation is better specified.
+         ; See appendix G.
       }
     }
