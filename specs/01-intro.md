@@ -140,12 +140,6 @@ The following proposals are not part of the Walking Onions proposal,
 but they are written at the same time, are either helpful or
 necessary for its implementation.
 
-xxx-dirport-linkspec.md allows a directory port to be represented
-with a link specifier.
-
-xxx-happy-families.md lets families be represented with a single
-identifier, rather than a long list of keys
-
 318-limit-protovers.md restricts the allowed version numbers for
 each subprotocol to the range 0..63.
 
@@ -155,3 +149,8 @@ commands across more than one cell.
 320-tap-out-again.md attempts to remove the need for TAP keys in
 the HSv2 protocol.
 
+321-happy-families.md lets families be represented with a single
+identifier, rather than a long list of keys
+
+322-dirport-linkspec.md allows a directory port to be represented
+with a link specifier.
