@@ -1,3 +1,10 @@
+```
+======================================================================
+OBSOLETE
+
+This is now proposal 322 in torspec.git.  Look there instead.
+======================================================================
+```
 
 # Extending link specifiers to include the directory port
 

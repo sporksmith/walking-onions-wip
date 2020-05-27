@@ -1,3 +1,10 @@
+```
+======================================================================
+OBSOLETE
+
+This is now proposal 321 in torspec.git.  Look there instead.
+======================================================================
+```
 
 ## Better performance and usability for the MyFamily option (v2)
 
