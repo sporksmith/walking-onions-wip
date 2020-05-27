@@ -3,12 +3,21 @@
 
 ## Motivation
 
-Authorities still expose directory ports, and encourage relays to
-use them preferentially for uploading and downloading.  With Walking
-Onions, we try to make every kind of "address" a link specifier --
-but there is currently no such way to specify directory ports.  We
-want authorities to be able to specify a list of link specifiers
-that can be used to contact them for uploads and downloads.
+Directory ports remain the only way to contact a (non-bridge) Tor
+relay that isn't expressible as a Link Specifier.  We haven't
+specified a link specifier of this kind so far, since it isn't a way
+to contact a relay to create a channel.
+
+But authorities still expose directory ports, and encourage relays
+to use them preferentially for uploading and downloading.  And with
+Walking Onions, it would be convenient to try to make every kind of
+"address" a link specifier -- we'd like want authorities to be able
+to specify a list of link specifiers that can be used to contact
+them for uploads and downloads.
+
+> It is possible that after revision, Walking Onions won't need a way
+> to specify this information.  If so, this proposal should be moved
+> to "Reserve" status as generally unuseful.
 
 ## Proposal
 
@@ -24,6 +33,4 @@ directory hierarchy.
 
 A dir-url link specifier SHOULD NOT appear in an EXTEND cell;
 implementations SHOULD reject them if they do appear.
-
-
 

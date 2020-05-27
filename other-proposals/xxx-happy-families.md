@@ -7,19 +7,19 @@ The current family mechanism allows well-behaved relays to
 identify that they all belong to the same 'family', and should
 not be used in the same circuits.
 
-Right now, families work by having every family member
-list every other family member in its server descriptor.  This
-winds up using O(n^2) space in microdescriptors, server
-descriptors, and RAM.  Adding or removing a server from the
-family requires all the other servers to change their torrc
-settings.
+Right now, families work by having every family member list every
+other family member in its server descriptor.  This winds up using
+O(n^2) space in microdescriptors and server descriptors. (For RAM,
+we can de-duplicate families which sometimes helps.)  Adding or
+removing a server from the family requires all the other servers to
+change their torrc settings.
 
 The is growth in size is not just a theoretical problem. Family
 declarations currently make up a little over 55% of the
 microdescriptors in the directory--around 24% after compression.
-The largest family has around 270 members.  270 members times a
-160-bit hashed identifier leads to over 5 kilobytes per SNIP, which
-is much greater than we'd want to use.
+The largest family has around 270 members.  With Walking Onions, 270
+members times a 160-bit hashed identifier leads to over 5 kilobytes
+per SNIP, which is much greater than we'd want to use.
 
 This is an updated version of proposal 242.  It differs by clarifying
 requirements and providing a more detailed migration plan.
@@ -29,7 +29,7 @@ requirements and providing a more detailed migration plan.
 In this design, every family has a master ed25519 "family key".  A node
 is in the family iff its server descriptor includes a certificate of its
 ed25519 identity key with the family key.  The certificate
-format is as in the tor-certs.txt spec; we would allocate a new
+format the one in the tor-certs.txt spec; we would allocate a new
 certificate type for this usage.  These certificates would need to
 include the signing key in the appropriate extension.
 
@@ -70,32 +70,36 @@ server descriptor contains any valid family-cert lines.  For each
 valid family-cert in the server descriptor, they add a
 base-64-encoded string of that family-cert's signing key.
 
-See also "deriving family lines from family-keys" below for an
-interesting but more difficult extension mechanism.
+> See also "deriving family lines from family-keys?" below for an
+> interesting but more difficult extension mechanism that I would
+> not recommend.
 
 ## Relay configuration
 
-There are several ways that we could have relays include family
-certificates in their descriptors.
+There are several ways that we could configure relays to let them
+include family certificates in their descriptors.
 
 The easiest would be putting the private family key on each relay,
 so that the relays could generate their own certificates.  This is
 easy to configure, but slightly risky: if the private key is
 compromised on any relay, anybody can claim membership in the
-family.  That isn't all that bad, however -- all the relays need to
-do in this event is to move to a new private family key.
+family.  That isn't so very bad, however -- all the relays would
+need to do in this event would be to move to a new private family
+key.
 
 A more orthodox method would be to keep the private key somewhere
 offline, and using it to generate a certificate for each relay in
-the family as needed.  These certificates should be made with long
-lifetimes, and relays should warn when they are going to expire soon.
+the family as needed.  These certificates should be made with
+long-enough lifetimes, and relays should warn when they are going to
+expire soon.
 
 ## Changes to relay behavior
 
-When generating a router descriptor, each relay should continue to
-include a family line that lists every other relay it knows about
-that has used the family-key as itself.  This keeps the "family"
-lines up-to-date with "family-keys" lines for compliant relays.
+Each relay should track which other relays they have seen using the
+same family-key as itself.  When generating a router descriptor,
+each relay should list all of these relays on the legacy 'family'
+line.  This keeps the "family" lines up-to-date with "family-keys"
+lines for compliant relays.
 
 Relays should continue listing relays in their family lines if they
 have seen a relay with that identity using the same family-key at
@@ -112,13 +116,11 @@ their family keys should be marked invalid by the authorities.
 Clients should treat node A and node B as belonging to the same
 family if ANY of these is true:
 
-* The client has server descriptors or microdescriptors for A
-  and B, and A's descriptor lists B in its family line, and
-  B's descriptor lists A in its family line.
+* The client has descriptors for A and B, and A's descriptor lists B
+  in its family line, and B's descriptor lists A in its family line.
 
-* Client A has some combination of router descriptors and
-  microdescriptors for A and B, and they both contain the same entry
-  in their family-keys or family-cert.
+* Client A has descriptors for A and B, and they both contain the
+  same entry in their family-keys or family-cert.
 
 ## Migration
 
@@ -213,6 +215,9 @@ its exponential cases.
 
 We need a new assigned value for the certificate type used for
 family signing keys.
+
+We need a new consensus method for placing family-keys lines in
+microdescriptors.
 
 ## Appendix: New network parameters
 
