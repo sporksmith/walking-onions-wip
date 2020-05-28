@@ -569,6 +569,10 @@ for the full algorithm, see section 04.
         body: encoded-cbor .cbor ENDIVEContent,
     ]
 
+    ; The set of signatures across an ENDIVE.
+    ;
+    ; This type doubles as the "detached signature" document used when
+    ; collecting signatures for a consensus.
     ENDIVESignature = {
         ; The actual signatures on the endive. A multisignature is the
         ; likeliest format here.
