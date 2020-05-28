@@ -42,6 +42,14 @@ Onion key types for decrypted INTRODUCE2 cells:
 * An "onion key" to indicate that the onion key for the rendezvous point is
   implicit in the SNIP.
 
+New URLs:
+
+* A URL for fetching ENDIVEs.
+
+* A URL for fetching client / relay parameter documents
+
+* A URL for fetching detached SNIP signatures.
+
 Protocol versions:
 
 XXXX

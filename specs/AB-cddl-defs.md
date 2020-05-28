@@ -42,8 +42,6 @@
        Ed25519         : 3,
        Ed448           : 4,
        BLS             : 5,     ; Not yet standardized.
-
-       ; XXX specify how references to other documents would be described.
     )
 
     PKAlgorithm = &(

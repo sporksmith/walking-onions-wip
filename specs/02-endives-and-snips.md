@@ -521,7 +521,13 @@ validated as described in "Design overview: Authentication" above.
     ; is just one of the signatures on it.
     SingleSig = [
        s_alg: SigningAlgorithm,
-       signature : bstr,
+       ; One of signature and sig_reference must be present.
+       ?signature : bstr,
+       ; sig_reference is an identifier for a signature that appears
+       ; elsewhere, and can be fetched on request.  It should only be
+       ; used with signature types too large to attach to SNIPs on their
+       ; own.
+       ?sig_reference : bstr,
        ; A prefix of the key or the key's digest, depending on the
        ; algorithm.
        ?keyid : bstr,
@@ -576,7 +582,7 @@ for the full algorithm, see section 04.
     ENDIVESignature = {
         ; The actual signatures on the endive. A multisignature is the
         ; likeliest format here.
-        endive: [ + SingleSig ],
+        endive_sig: [ + SingleSig ],
 
         ; Lifespan information.  As with SNIPs, this is included as part
         ; of the input to the hash algorithm for the signature.
@@ -911,10 +917,10 @@ algorithm, but support more key types.
 
 ## ENDIVE diffs
 
-Here is a binary format to be used with ENDIVEs and any other similar
-binary formats.  Authorities and directory caches need to be able to
-generate it; clients and non-cache relays only need to be able to parse
-and apply it.
+Here is a binary format to be used with ENDIVEs, ParamDocs, and any
+other similar binary formats.  Authorities and directory caches need to
+be able to generate it; clients and non-cache relays only need to be
+able to parse and apply it.
 
     ; Binary diff specification.
     BinaryDiff = {
@@ -999,6 +1005,11 @@ difflib.)
 The diff format above should work equally well no matter what
 diff algorithm is used, so we have room to move to other algorithms
 in the future if needed.
+
+To indicate support for the above diff format in directory requests,
+implementations should use an `X-Support-Diff-Formats` header.  The
+above format is designated "cbor-bindiff"; our existing format is
+called "ed".
 
 ## Storage analysis
 
