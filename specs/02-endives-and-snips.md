@@ -1041,9 +1041,14 @@ bytes long.
           nonce ||
           Z(B - 33 - len(nonce))
 
-     LEAF_C = 0x8BFF0F687F4DC6A1
-     NODE_C = 0xA6F7933D3E6B60DB
-     OTHER_C = 0x7365706172617465
+     LEAF_C = 0x8BFF0F687F4DC6A1 ^ NETCONST
+     NODE_C = 0xA6F7933D3E6B60DB ^ NETCONST
+     OTHER_C = 0x7365706172617465 ^ NETCONST
+
+     # For the live Tor network only.
+     NETCONST = 0x0746f72202020202
+     # For testing networks, by default.
+     NETCONST = 0x74657374696e6720
 
      U64(n) -- N encoded as a big-endian 64-bit number.
      Z(n) -- N bytes with value zero.
