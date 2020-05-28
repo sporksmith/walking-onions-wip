@@ -52,4 +52,16 @@ New URLs:
 
 Protocol versions:
 
-XXXX
+(In theory we could omit many new protovers here, since being listed
+in an ENDIVE implies support for the new protocol variants.  We're
+going to use new protovers anyway, however, since doing so keeps our
+numbering consistent.)
+
+We need new versions for these subprotocols:
+
+* _Relay_ to denote support for new handshake elements.
+
+* _DirCache_ to denote support for ENDIVEs, paramdocs, binary diffs, etc.
+
+* _Cons_ to denote support for ENDIVEs
+
