@@ -1,5 +1,6 @@
 
 <!-- Section 6 --> <a id='S6'></a>
+
 # Client behavior with walking onions
 
 Today's Tor clients have several behaviors that become more somewhat
@@ -9,6 +10,7 @@ some effort, and still others appear to be incompatible with the
 wWlking Onions design.
 
 <!-- Section 6.1 --> <a id='S6.1'></a>
+
 ## Bootstrapping and guard selection
 
 When a client first starts running, it has no guards on the Tor
@@ -48,6 +50,7 @@ itself, to ensure that the guard is still listed in the consensus, and
 to keep the client's information up-to-date.
 
 <!-- Section 6.2 --> <a id='S6.2'></a>
+
 ## Using bridges
 
 As now, clients are configured to use a bridge by using an address and a
@@ -82,6 +85,7 @@ specifiers or keys.  The client MAY use link specifiers from the
 UnsignedSNIP on future attempts to connect to the bridge.
 
 <!-- Section 6.3 --> <a id='S6.3'></a>
+
 ## Finding relays by exit policy
 
 To find a relay by exit policy, clients might choose the exit
@@ -151,6 +155,7 @@ This design may require END cells to become wider; see
 supersede propose 249 and allow more wide cell types.
 
 <!-- Section 6.4 --> <a id='S6.4'></a>
+
 ## Universal path restrictions
 
 There are some restrictions on Tor paths that all clients should obey,
@@ -184,6 +189,7 @@ restriction.
 > SNIPs.  This would need some signaling in the EXTEND/EXTENDED cells.
 
 <!-- Section 6.5 --> <a id='S6.5'></a>
+
 ## Client-configured path restrictions
 
 Sometimes users configure their clients with path restrictions beyond
@@ -193,12 +199,14 @@ configured with a short list of vanguards to use in their second
 position.
 
 <!-- Section 6.5.1 --> <a id='S6.5.1'></a>
+
 ### Handling "light" restrictions
 
 If a restriction only excludes a small number of relays, then clients
 can continue to use the "build and discard" methodology described above.
 
 <!-- Section 6.5.2 --> <a id='S6.5.2'></a>
+
 ### Handling some "heavy" restrictions
 
 Some restrictions can exclude most relays, and still be reasonably easy
@@ -218,6 +226,7 @@ selected relays.
 > support.
 
 <!-- Section 6.5.3 --> <a id='S6.5.3'></a>
+
 ### Recognizing too-heavy restrictions
 
 The above approaches do not handle all possible sets of restrictions. In

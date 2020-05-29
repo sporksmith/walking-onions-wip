@@ -1,5 +1,6 @@
 
 <!-- Section 2 --> <a id='S2'></a>
+
 # Document Formats: ENDIVEs and SNIPs
 
 Here we specify a pair of related document formats that we will
@@ -32,9 +33,11 @@ information in them (particularly SNIP signatures and index
 ranges) will tend to change with every period.
 
 <!-- Section 2.1 --> <a id='S2.1'></a>
+
 ## Preliminaries and scope
 
 <!-- Section 2.1.1 --> <a id='S2.1.1'></a>
+
 ### Goals for our formats
 
 We want SNIPs to be small, since they need to be sent on the wire
@@ -57,6 +60,7 @@ is valid", we will just make the validity interval start 10 minutes
 earlier.
 
 <!-- Section 2.1.2 --> <a id='S2.1.2'></a>
+
 ### Notes on Metaformat
 
 In the format descriptions below, we will describe a set of
@@ -97,6 +101,7 @@ However, implementations SHOULD reject documents that are not
 "well-formed" and "valid" by the definitions of RFC 7049.
 
 <!-- Section 2.1.3 --> <a id='S2.1.3'></a>
+
 ### Design overview: signing documents
 
 We try to use a single document-signing approach here, using a hash
@@ -110,6 +115,7 @@ Object` to represent a binary string that must hold a valid encoding
 of a CBOR object whose type is `Object`.
 
 <!-- Section 2.1.4 --> <a id='S2.1.4'></a>
+
 ### Design overview: SNIP Authentication
 
 I'm going to specify a flexible authentication format for SNIPs that
@@ -194,6 +200,7 @@ For our definition of `H_leaf()` and `H_node()`, see "Digests and
 parameters" below.
 
 <!-- Section 2.1.5 --> <a id='S2.1.5'></a>
+
 ### Design overview: timestamps and validity.
 
 For future-proofing, SNIPs and ENDIVEs have separate time ranges
@@ -214,8 +221,8 @@ Later (see section 08), we'll explain measures to ensure that
 hostile relays do not take advantage of multiple overlapping SNIP
 lifetimes to attack clients.
 
-
 <!-- Section 2.1.6 --> <a id='S2.1.6'></a>
+
 ### Design overview: how the formats work together
 
 Authorities, as part of their current voting process, will produce an
@@ -232,6 +239,7 @@ Once the SNIPs are reconstructed, relays will hold them and serve them
 to clients.
 
 <!-- Section 2.1.7 --> <a id='S2.1.7'></a>
+
 ### What isn't in this section
 
 This section doesn't tell you what the different routing indices
@@ -245,6 +253,7 @@ votes, and doesn't give an algorithm for extracting SNIPs from an ENDIVE.
 Those come later. (See sections 03 and 04 respectively.)
 
 <!-- Section 2.2 --> <a id='S2.2'></a>
+
 ## SNIPs
 
 Each SNIP has three pieces: the part of the SNIP that describes the
@@ -277,6 +286,7 @@ the objects' content is self-describing CBOR, and isn't vulerable to
 framing issues.)
 
 <!-- Section 2.2.1 --> <a id='S2.2.1'></a>
+
 ### SNIPRouterData: information about a single router.
 
 Here we talk about the type that tells a client about a single
@@ -412,6 +422,7 @@ published time, etc.
     ]
 
 <!-- Section 2.2.2 --> <a id='S2.2.2'></a>
+
 ### SNIPLocation: Locating a SNIP within a routing index.
 
 The SNIPLocation type can encode where a SNIP is located with
@@ -421,7 +432,6 @@ a given relay in one SNIP, it might exist in another SNIP. Clients
 should not infer that the absence of an IndexId in one SNIPLocation
 for a relay means that no SNIPLocation with that IndexId exists for
 the relay.
-
 
     ; SNIPLocation: we're using a map here because it's natural
     ; to look up indices in maps.
@@ -466,6 +476,7 @@ IndexRanges based on the uint type work the same, except that they always
 specify the first 32 bits of a prefix.
 
 <!-- Section 2.2.3 --> <a id='S2.2.3'></a>
+
 ### SNIPSignature: How to prove a SNIP is in the ENDIVE.
 
 Here we describe the types for implementing SNIP signatures, to be
@@ -556,9 +567,8 @@ validated as described in "Design overview: Authentication" above.
     ; too many leaves to actually calculate on.)
     MerklePath = [ uint, *bstr ]
 
-
-
 <!-- Section 2.3 --> <a id='S2.3'></a>
+
 ## ENDIVEs: sending a bunch of SNIPs efficiently.
 
 ENDIVEs are delivered by the authorities in a compressed format, optimized
@@ -794,6 +804,7 @@ for the full algorithm, see section 04.
     ; objects.
 
 <!-- Section 2.4 --> <a id='S2.4'></a>
+
 ## Network parameter documents
 
 Network parameter documents ("ParamDocs" for short) take the place of the
@@ -889,6 +900,7 @@ recommended versions, authority certificates, and so on.
     Port = 1...65535
 
 <!-- Section 2.5 --> <a id='S2.5'></a>
+
 ## Certificates
 
 Voting certificates are used to bind authorities' long-term
@@ -935,6 +947,7 @@ algorithm, but support more key types.
     }
 
 <!-- Section 2.6 --> <a id='S2.6'></a>
+
 ## ENDIVE diffs
 
 Here is a binary format to be used with ENDIVEs, ParamDocs, and any
@@ -1032,6 +1045,7 @@ above format is designated "cbor-bindiff"; our existing format is
 called "ed".
 
 <!-- Section 2.7 --> <a id='S2.7'></a>
+
 ## Digests and parameters
 
 Here we give definitions for `H_leaf()` and `H_node()`, based on an
@@ -1082,6 +1096,4 @@ bytes long.
      Z(n) -- N bytes with value zero.
      len(b) -- the number of bytes in a byte-string b.
      bits(b) -- the number of bits in a bit-string b.
-
-
 

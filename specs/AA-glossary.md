@@ -1,7 +1,9 @@
 <!-- Section A --> <a id='SA'></a>
+
 # Appendices
 
 <!-- Section A.1 --> <a id='SA.1'></a>
+
 ## Appendix A: Glossary
 
 I'm going to put a glossary here so I can try to use these terms

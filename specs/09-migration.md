@@ -1,5 +1,6 @@
 
 <!-- Section 9 --> <a id='S9'></a>
+
 # Migrating to Walking Onions
 
 This proposal is a major change in the Tor network that will
@@ -35,7 +36,6 @@ should be deployed on the network.
 6. Eventually, relays that do not support walking onions should not
    be listed in the consensus.
 
-
 Client support for walking onions should be enabled or disabled, at
 first, with a configuration option.  Once it seems stable, the
 option should have an "auto" setting that looks at a network
@@ -44,6 +44,7 @@ however: it should be the minimum client version whose support for
 walking onions is believed to be correct.
 
 <!-- Section 9.1 --> <a id='S9.1'></a>
+
 ## Future work: migrating away from sedentary onions
 
 Once all clients are using walking onions, we can take a pass

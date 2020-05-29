@@ -44,20 +44,29 @@ def revise(fnames):
     idx = Idx()
     for fname in fnames:
         io = Replacing(fname)
+        last_was_blank = False
         try:
             for line in io:
                 if line.startswith(COMMENT_STR):
                     continue
+                if line.strip() == '':
+                    if last_was_blank:
+                        continue
+                    last_was_blank = True
+                else:
+                    last_was_blank = False
                 m = HEADER_RE.match(line)
-                if m:
+                if m != None:
                     if line.startswith('# Appendices'):
                         idx.next(1)
                         pos = "A"
                         idx.p[0] = "A"
                     else:
                         pos = idx.next(len(m.group(1)))
-                    print("<!-- Section {0} --> <a id='S{0}'></a>".format(pos), file=io)
+                    print("<!-- Section {0} --> <a id='S{0}'></a>\n".format(pos), file=io)
+
                 io.write(line)
+
         except:
             io.abort()
             raise

@@ -1,5 +1,6 @@
 
 <!-- Section A.7 --> <a id='SA.7'></a>
+
 ## Appendix G: A list of routing indices
 
 Middle -- general purpose index for use when picking middle hops in
@@ -66,7 +67,6 @@ Exit0..ExitNNN -- Exits that can connect to all ports within a given
 PortClass 0 through NNN.
 
 Formula:
-
 
       type: 'weighted',
       source: {

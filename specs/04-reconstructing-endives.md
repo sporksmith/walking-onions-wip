@@ -1,5 +1,6 @@
 
 <!-- Section 4 --> <a id='S4'></a>
+
 # Relay operations: Receiving and expanding ENDIVEs
 
 Previously, we introduced a format for ENDIVEs to be transmitted
@@ -31,6 +32,7 @@ relays do not need to follow the steps of these algorithms exactly,
 but they MUST produce the same outputs as if they had followed them.
 
 <!-- Section 4.1 --> <a id='S4.1'></a>
+
 ## Computing index positions.
 
 For every IndexId in every Index Group, the relay will compute the
@@ -64,6 +66,7 @@ cannot be expanded.
 > turns out to be a use for it.
 
 <!-- Section 4.1.1 --> <a id='S4.1.1'></a>
+
 ### Raw indices
 
 When the IndexType is Indextype_Raw, then its members are listed
@@ -92,6 +95,7 @@ directly in the IndexSpec.
     Return result_idx.
 
 <!-- Section 4.1.2 --> <a id='S4.1.2'></a>
+
 ### Raw numeric indices
 
 If the IndexType is Indextype_RawNumreic, it is describe by a set of
@@ -118,6 +122,7 @@ spans on a 32-bit index range.
     Return result_idx.
 
 <!-- Section 4.1.3 --> <a id='S4.1.3'></a>
+
 ### Weighted indices
 
 If the IndexSpec type is Indextype_Weighted, then the index is
@@ -163,6 +168,7 @@ results in a mapping onto 32 bit integers that completely covers the
 space of available indices.
 
 <!-- Section 4.1.4 --> <a id='S4.1.4'></a>
+
 ### RSAId indices
 
 If the IndexSpec type is Indextype_RSAId then the index is a set of
@@ -195,7 +201,6 @@ feature.
 
     Return INDEX_FROM_RING_KEYS(R).
 
-
     Sub-Algorithm: INDEX_FROM_RING_KEYS(R)
 
     First, sort R according to its 'pos' field.
@@ -213,8 +218,8 @@ feature.
 
     Return result_idx.
 
-
 <!-- Section 4.1.5 --> <a id='S4.1.5'></a>
+
 ### Ed25519 indices
 
 If the IndexSpec type is Indextype_Ed25519, then the index is a set of
@@ -253,6 +258,7 @@ derivatives.
     Return INDEX_FROM_RING_KEYS(R).
 
 <!-- Section 4.1.6 --> <a id='S4.1.6'></a>
+
 ### Building a SNIPLocation
 
 After computing all the indices in an IndexGroups, relays combine
@@ -284,6 +290,7 @@ If R[idx] is {} (the empty map) for any given idx, then no SNIP will be
 generated for the SNIPRouterData at that routing index for this index group.
 
 <!-- Section 4.2 --> <a id='S4.2'></a>
+
 ## Computing truncated SNIPRouterData.
 
 An index group can include an `omit_from_snips` field to indicate that
@@ -303,6 +310,7 @@ There is no need to compute a SNIPRouterData when no SNIP is going to be
 generated for a given router.
 
 <!-- Section 4.3 --> <a id='S4.3'></a>
+
 ## Building the Merkle tree.
 
 After computing a list of (SNIPLocation, SNIPRouterData) for every entry
@@ -361,6 +369,7 @@ If `siganture-depth` from the ENDIVE is N, the relay does not need to
 compute any merkle tree entries for PATHs of length shorter than N bits.
 
 <!-- Section 4.4 --> <a id='S4.4'></a>
+
 ## Assembling the SNIPs
 
 Finally, the relay has computed a list of encoded (SNIPLocation,
@@ -388,6 +397,7 @@ point, the relay builds them into SNIPs, using the `sig_params` and
     HashPath.
 
 <!-- Section 4.5 --> <a id='S4.5'></a>
+
 ## Implementation considerations
 
 A relay only needs to hold one set of SNIPs at a time: once one

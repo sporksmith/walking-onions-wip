@@ -1,5 +1,6 @@
 
 <!-- Section A.2 --> <a id='SA.2'></a>
+
 ## Appendix B: More cddl definions
 
     ; These definitions are used throughout the rest of the
@@ -51,7 +52,6 @@
        Curve25519 : 100,
        Curve448   : 101
     )
-
 
     KeyUsage = &(
        ; A master unchangeable identity key for this authority.  May be

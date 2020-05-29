@@ -1,5 +1,6 @@
 
 <!-- Section 5 --> <a id='S5'></a>
+
 # Extending circuits with Walking Onions
 
 When a client wants to extend a circuit, there are several
@@ -15,6 +16,7 @@ the extending relay needs to tell the target relay which keys are in
 the SNIP that the client is using.
 
 <!-- Section 5.1 --> <a id='S5.1'></a>
+
 ## Modifying the EXTEND/CREATE handshake
 
 First, we will require that proposal 249 (or some similar proposal
@@ -96,8 +98,8 @@ By default, EXTENDED2 cells are sent with a SNIP iff the EXTENDED2
 cell used a `snip_index_pos` link specifier, and CREATED2 cells are
 not sent with a SNIP.
 
-
 <!-- Section 5.1.1 --> <a id='S5.1.1'></a>
+
 ### New link specifiers
 
 We add a new link specifier type for a router index, using the
@@ -137,6 +139,7 @@ it had gotten the correct SNIP.)
 > trunnel-like objects for this purpose.
 
 <!-- Section 5.2 --> <a id='S5.2'></a>
+
 ## Modified ntor handshake
 
 We adapt the ntor handsake from tor-spec.txt for this use, with the
@@ -177,6 +180,7 @@ We will have to give this version of the handshake a new handshake
 type.
 
 <!-- Section 5.3 --> <a id='S5.3'></a>
+
 ## New relay behavior on EXTEND and CREATE failure.
 
 If an EXTEND2 cell based on an routing index fails, the relay should
@@ -190,6 +194,7 @@ extension.  Clients MAY re-extend or close the circuit, but should
 not leave it dangling.
 
 <!-- Section 5.4 --> <a id='S5.4'></a>
+
 ## NIL handshake type
 
 We introduce a new handshake type, "NIL".  The NIL handshake always
@@ -206,6 +211,7 @@ with the SNIP(s) that the client requested in one or more Extra_SNIP
 extensions.
 
 <!-- Section 5.5 --> <a id='S5.5'></a>
+
 ## Padding handshake cells to a uniform size
 
 To avoid leaking information, all CREATE/CREATED/EXTEND/EXTENDED

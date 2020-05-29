@@ -1,5 +1,6 @@
 
 <!-- Section 3 --> <a id='S3'></a>
+
 # Directory authority operations
 
 For Walking Onions to work, authorities must begin to generate
@@ -23,6 +24,7 @@ new binary-based voting format, a new set of voting rules for it, and a
 series of migration steps.
 
 <!-- Section 3.1 --> <a id='S3.1'></a>
+
 ## Overview
 
 Except as described below, we retain from Tor's existing voting
@@ -64,6 +66,7 @@ For computing ENDIVEs, the principle changes in voting are:
     easier to change fields without requiring new consensus methods.
 
 <!-- Section 3.2 --> <a id='S3.2'></a>
+
 ## Negotiating vote uploads
 
 Authorities supporting Walking Onions are required to support a new
@@ -110,6 +113,7 @@ appropriate.
 > include microdescriptors in votes for more convenient processing.
 
 <!-- Section 3.3 --> <a id='S3.3'></a>
+
 ## A generalized algorithm for voting
 
 Unlike with previous versions of our voting specification, here I'm
@@ -133,6 +137,7 @@ authority has an opinion on how to reach a consensus about the
 field, without having any preferred value for the field itself.
 
 <!-- Section 3.3.1 --> <a id='S3.3.1'></a>
+
 ### Constants used with voting operations
 
 Many voting operations may be parameterized by an unsigned integer.
@@ -189,6 +194,7 @@ is treated as if it were AUTH.
 > vote on x...if there are 3 authorities."
 
 <!-- Section 3.3.2 --> <a id='S3.3.2'></a>
+
 ### Producing consensus on a field
 
 Each voting operation will either produce a CBOR output, or produce
@@ -223,9 +229,11 @@ operation over CBOR values.  This operation is defined later in
 appendix E; it works only on homogeneous inputs.
 
 <!-- Section 3.3.3 --> <a id='S3.3.3'></a>
+
 ### Generic voting operations
 
 <!-- Section 3.3.3.1 --> <a id='S3.3.3.1'></a>
+
 #### None
 
 This voting operation takes no parameters, and always produces "no
@@ -239,6 +247,7 @@ _or one which is not recognized by the consensus-method in use_, the
 authorities proceed as if the operation had been "None".
 
 <!-- Section 3.3.4 --> <a id='S3.3.4'></a>
+
 ### Voting operations for simple values
 
 We define a "simple value" according to these cddl rules:
@@ -265,6 +274,7 @@ a tuple of such values.
 We define each of these operations in the sections below.
 
 <!-- Section 3.3.4.1 --> <a id='S3.3.4.1'></a>
+
 #### Median
 
 _Parameters_: `MIN_VOTES` (an integer), `BREAK_EVEN_LOW` (a boolean),
@@ -290,6 +300,7 @@ For example, the Median(…, even_low: True, type: "uint") of the votes
 of the votes ["String", 77, 9, 22, "String", 3] is 9.
 
 <!-- Section 3.3.4.2 --> <a id='S3.3.4.2'></a>
+
 #### Mode
 
 _Parameters_: `MIN_COUNT` (an integer), `BREAK_TIES_LOW` (a boolean),
@@ -313,6 +324,7 @@ and in favor of higher values of `BREAK_TIES_LOW` is false.
 (Perform comparisons in canonical cbor order.)
 
 <!-- Section 3.3.4.3 --> <a id='S3.3.4.3'></a>
+
 #### Threshold
 
 _Parameters_: `MIN_COUNT` (an integer), `BREAK_MULTI_LOW` (a boolean),
@@ -334,6 +346,7 @@ If no value has received at least `MIN_COUNT` votes, then return
 "no consensus".
 
 <!-- Section 3.3.4.4 --> <a id='S3.3.4.4'></a>
+
 #### BitThreshold
 
 Parameters: `MIN_COUNT` (an integer >= 1)
@@ -353,6 +366,7 @@ The output is a uint or biguint in which the b'th bit is set iff the
 b'th bit is set in at least `MIN_COUNT` of the votes.
 
 <!-- Section 3.3.5 --> <a id='S3.3.5'></a>
+
 ### Voting operations for lists
 
 These operations work on lists of SimpleVal:
@@ -369,6 +383,7 @@ They are encoded as:
     ListOp = SetJoinOp
 
 <!-- Section 3.3.5.1 --> <a id='S3.3.5.1'></a>
+
 #### SetJoin
 
 Parameters: `MIN_COUNT` (an integer >= 1).
@@ -394,6 +409,7 @@ to preprocess votes by discarding all but one instance of each
 member.)
 
 <!-- Section 3.3.6 --> <a id='S3.3.6'></a>
+
 ### Voting operations for maps
 
 Map voting operations work over maps from key types to other non-map
@@ -412,6 +428,7 @@ They are encoded as:
     MapOp = MapJoinOp / StructJoinOp
 
 <!-- Section 3.3.6.1 --> <a id='S3.3.6.1'></a>
+
 #### MapJoin
 
 The MapJoin operation combines homogeneous maps (that is, maps from
@@ -451,6 +468,7 @@ The final vote result is a map from the remaining keys to the values
 produced by the voting operation.
 
 <!-- Section 3.3.6.2 --> <a id='S3.3.6.2'></a>
+
 #### StructJoin
 
 A StructJoinOp operation describes a way to vote on maps that encode a
@@ -489,6 +507,7 @@ map to that consensus in the result.
 This operation always reaches a consensus, even if it is an empty map.
 
 <!-- Section 3.3.6.3 --> <a id='S3.3.6.3'></a>
+
 #### CborData
 
 A CborData operation wraps another operation, and tells the authorities
@@ -515,6 +534,7 @@ consensus.  Otherwise, the consensus value for this operation is the
 decoding of that bstr value.
 
 <!-- Section 3.3.6.4 --> <a id='S3.3.6.4'></a>
+
 #### DerivedFromField
 
 This operation can only occur within a StructJoinOp operation (or a
@@ -571,6 +591,7 @@ should be computed _after_ the other members, so that they can refer
 to those members themselves.
 
 <!-- Section 3.3.7 --> <a id='S3.3.7'></a>
+
 ### Voting on document sections
 
 Voting on a section of the document is similar to the StructJoin
@@ -601,6 +622,7 @@ Do the same for the "nil" StructItemOp; use the result as the
 Note that this merging operation is *not* recursive.
 
 <!-- Section 3.4 --> <a id='S3.4'></a>
+
 ## A CBOR-based metaformat for votes.
 
 A vote is a signed document containing a number of sections; each
@@ -866,6 +888,7 @@ description of how the vote is to be conducted, or both.
     }
 
 <!-- Section 3.5 --> <a id='S3.5'></a>
+
 ## Computing a consensus.
 
 To compute a consensus, the authorities first verify that all the votes are
@@ -922,6 +945,7 @@ SectionRules objects in the VotingRules of this votes, and apply it
 as described above in "Voting on document sections".
 
 <!-- Section 3.6 --> <a id='S3.6'></a>
+
 ## If an older consensus method is negotiated (Transitional)
 
 The `legacy-vote` field in the vote document contains an older (v3,
@@ -942,6 +966,7 @@ give the same list of consensus-methods and the same voting
 schedule in both votes.  Authorities MUST reject noncompliant votes.
 
 <!-- Section 3.7 --> <a id='S3.7'></a>
+
 ## Computing an ENDIVE.
 
 If a consensus-method is negotiated that is high enough to support
@@ -978,6 +1003,7 @@ according to fields in the meta section.  See "Constructing Indices" below.
 > is done.)
 
 <!-- Section 3.7.1 --> <a id='S3.7.1'></a>
+
 ### Constructing indices
 
 After having build the list of relays, the authorities construct and
@@ -1019,6 +1045,7 @@ Indices with the same IndexGroupId are placed in the same index
 group; index groups are ordered numerically.
 
 <!-- Section 3.8 --> <a id='S3.8'></a>
+
 ## Computing a legacy consensus.
 
 When using a consensus method that Supports Walking Onions, the
@@ -1037,6 +1064,7 @@ MetaSection or the ClientParamsSection. All parameters are copied
 into the net-params field.
 
 <!-- Section 3.9 --> <a id='S3.9'></a>
+
 ## Managing indices over time.
 
 > The present voting mechanism does not do a great job of handling

@@ -1,5 +1,6 @@
 
 <!-- Section A.9 --> <a id='SA.9'></a>
+
 ## Appendix I: Non-clique topologies with Walking Onions
 
 For future work, we can expand the Walking Onions design to
