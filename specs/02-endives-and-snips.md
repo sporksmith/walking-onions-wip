@@ -10,7 +10,7 @@ given relay occupies a given range in a certain routing index.
 For example, we can imagine that a SNIP might say:
 
 * Relay X has the following IP, port, and onion key.
-* In the routing index Y, it occupies positions 0x20002
+* In the routing index Y, it occupies index positions 0x20002
   through 0x23000.
 * This SNIP is valid on 2020-12-09 00:00:00, for one hour.
 * Here is a signature of all the above text, using a threshold
@@ -22,7 +22,7 @@ routing table from Tor's current path selection code, all wrapped
 in a signature.
 
 Every relay keeps a set of SNIPs, and serves them to clients when
-the client is extending by routing index.
+the client is extending by a routing index position.
 
 An ENDIVE is a complete set of SNIPs.  Relays download ENDIVEs, or
 diffs between ENDIVEs, once every voting period.  We'll accept some
@@ -226,7 +226,7 @@ to clients.
 ### What isn't in this section
 
 This section doesn't tell you what the different routing indices
-are or mean.  For now, we can imagine there being one index for
+are or mean.  For now, we can imagine there being one routing index for
 guards, one for middles, and one for exits, and one for each hidden
 service directory ring. (See section 06 for more on regular indices,
 and section 07 for more on onion services.)
@@ -390,12 +390,12 @@ published time, etc.
     ; until older network parameter documents become invalid.
     ExitPolicy = SinglePolicy / [ SinglePolicy, SinglePolicy ]
 
-    ; Each single exit policy is a tagged bit array, whose bits are indexes
-    ; into the list of port classes in the network parameter
-    ; document with a corresponding tag.
+    ; Each single exit policy is a tagged bit array, whose bits
+    ; correspond to the members of the list of port classes in the
+    ; network parameter document with a corresponding tag.
     SinglePolicy = [
          ; Identifies which group of port classes we're talking about
-         tag : uint,
+         tag : unsigned,
          ; Bit-array of which port classes this relay supports.
          policy : bstr
     ]
@@ -406,21 +406,17 @@ The SNIPLocation type can encode where a SNIP is located with
 respect to one or more routing indices.  Note that a SNIPLocation
 does not need to be exhaustive: If a given IndexId is not listed for
 a given relay in one SNIP, it might exist in another SNIP. Clients
-should not infer that the absence of an index in one SNIPLocation
-for a relay means that no SNIPLocation with that index exists for
+should not infer that the absence of an IndexId in one SNIPLocation
+for a relay means that no SNIPLocation with that IndexId exists for
 the relay.
 
 
     ; SNIPLocation: we're using a map here because it's natural
     ; to look up indices in maps.
     SNIPLocation = {
-        ; A SNIP's location is given as a ranges of values in different
+        ; A SNIP's location is given as a index ranges in different
         ; indices.
         * IndexId => IndexRange / ExtensionIndex,
-
-        ; For experimental and extension use -- denotes other kinds of
-        ; indices.
-        * tstr => IndexRange / ExtensionIndex,
     }
 
     ; We'll define the different index ranges as we go on with
@@ -442,17 +438,20 @@ the relay.
     ; will not understand it and current ENDIVEs will not contain it.
     ExtensionIndex = any
 
-    ; For most indices, the ranges are encoded as 4-byte integers.  But for
-    ; hsdir rings, they are binary strings.
+    ; For most routing indices, the ranges are encoded as 4-byte integers.
+    ; But for hsdir rings, they are binary strings.  (Clients and
+    ; relays SHOULD NOT require this.)
     IndexPos = uint / bstr
 
-A bit more on IndexRanges: If an IndexRange's key is a bstr, then it may
-describe a range of binary values for keys or digests.  It does so by a
-series of prefixes.  For example, the IndexRange `[ h'AB12', h'AB24' ]`
-includes all the binary strings that start with `AB12`, `AB13`, and so on, up
-through all strings that start with `AB24`.
-Alternatively, you can think of a `bstr`-based IndexRange *(lo, hi)*
-as covering *lo*`00000...` through *hi*`fffffffff...`.
+A bit more on IndexRanges: Every IndexRange actually describes a set of
+_prefixes_ for possible index positions.  For example, the IndexRange
+`[ h'AB12', h'AB24' ]` includes all the binary strings that start with (hex)
+`AB12`, `AB13`, and so on, up through all strings that start with `AB24`.
+Alternatively, you can think of a `bstr`-based IndexRange *(lo, hi)* as
+covering *lo*`00000...` through *hi*`ff...`.
+
+IndexRanges based on the uint type work the same, except that they always
+specify the first 32 bits of a prefix.
 
 ### SNIPSignature: How to prove a SNIP is in the ENDIVE.
 
@@ -553,9 +552,10 @@ for diffs.
 
 Note that if we are using Merkle trees for SNIP authentication, ENDIVEs do
 not include the trees at all, since those can be inferred from the leaves of
-the tree.  Similarly, the ENDIVEs do not include raw indices, but instead
-include a set of bandwidths that can be combined into the index values --
-these changes less frequently, and therefore are more diff friendly.
+the tree.  Similarly, the ENDIVEs do not include raw routing indices, but
+instead include a set of bandwidths that can be combined into the routing
+indices -- these bandwidths change less frequently, and therefore are more
+diff-friendly.
 
 Note also that this format has more "wasted bytes" than SNIPs
 do. Unlike SNIPs, ENDIVEs are large enough to benefit from
@@ -653,10 +653,9 @@ for the full algorithm, see section 04.
         * tstr => any,
     }
 
-    ; An "indexgroup" lists a bunch of routing indices that apply to the same
-    ; SNIPs.  There may be multiple indexgroups in the case when we want to
-    ; have the same relay appear in more than one SNIP with different indices
-    ; for some reason.
+    ; An "index group" lists a bunch of routing indices that apply to the same
+    ; SNIPs.  There may be multiple index groups when a relay needs to appear
+    ; in different SNIPs with routing indices for some reason.
     IndexGroup = {
         ; A list of all the indices that are built for this index group.
         ; An IndexId may appear in at most one group per ENDIVE.
@@ -687,13 +686,15 @@ for the full algorithm, see section 04.
     Indextype_Ed25519Id = 3
     Indextype_RawNumeric = 4
 
-    ; An indexspec may given as a raw set of indices.  This is a fallback for
-    ; cases where we simply can't construct an index any other way.
+    ; An indexspec may given as a raw set of index ranges.  This is a
+    ; fallback for cases where we simply can't construct an index any other
+    ; way.
     IndexSpec_Raw = {
         type : Indextype_Raw,
-        first_index : IndexPos,
-        ; This index is constructed by taking relays by index from the list
-        ; of ENDIVERouterData, and putting them at a given point in the index.
+        ; This index is constructed by taking relays by their position in the
+        ; list from the list of ENDIVERouterData, and placing them at a given
+        ; location in the routing index.  Each index range extends up to
+        ; right before the next index position.
         index_ranges: [ * [ uint, IndexPos ] ],
     }
 
@@ -701,8 +702,10 @@ for the full algorithm, see section 04.
     ; ENDIVERouterData index, and by their numeric spans on the index.
     IndexSpec_RawNumeric = {
         type: Indextype_RawNumeric,
+        first_index_pos : uint,
         ; This index is constructed by taking relays by index from the list
-        ; of ENDIVERouterData, and putting them at a given point in the index.
+        ; of ENDIVERouterData, and giving them a certain amount of "weight"
+        ; in the index.
         index_ranges: [ * [ idx : uint, span : uint ] ],
     }
 
@@ -953,8 +956,8 @@ able to parse and apply it.
     CopyDiffCommand = [
         OrigBytesCmdId,
         ; Range of bytes to copy from the original document.
-        ; Ranges include their starting byte.  Ranges are indexed
-        ; from the end of the _last_ range that was copied.
+        ; Ranges include their starting byte.  The "offset" is relative to
+        ; the end of the _last_ range that was copied.
         offset : int,
         length : uint,
     ]
@@ -984,7 +987,7 @@ Applying a binary diff is simple:
 
         If C begins with OrigBytesCmdId:
             Increase "OFFSET" by C.offset
-            If OFFSET..OFFSET+C.length is not a valid index range in
+            If OFFSET..OFFSET+C.length is not a valid range in
                INP, abort.
             Append INP[OFFSET .. OFFSET+C.length] to OUT.
             Increase "OFFSET" by C.length

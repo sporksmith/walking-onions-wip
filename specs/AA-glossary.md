@@ -26,3 +26,5 @@ associated with a single *index range*.
 *ParamDoc* -- A network parameters document, describing settings for the
  whole network.  Clients download this infrequently.
 
+*Index group* -- A collection of routing indices that are encoded in the same
+ SNIPs.

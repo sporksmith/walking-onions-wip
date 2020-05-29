@@ -23,7 +23,7 @@ extending it a further hop using the snip_span link specifier to
 upload to any of the first 3 replicas on the ring.  Clients SHOULD
 choose an 'nth' at random; services SHOULD upload to each replica.
 
-Using a full 80-bit or 256-bit index value in the link specifier
+Using a full 80-bit or 256-bit index position in the link specifier
 would leak the chosen service to somebody other than the directory.
 Instead, the client or service SHOULD truncate the identifier to a
 number of bytes equal to the network parameter `hsv2-index-bytes` or

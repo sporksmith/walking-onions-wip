@@ -32,7 +32,7 @@ but they MUST produce the same outputs as if they had followed them.
 ## Computing index positions.
 
 For every IndexId in every Index Group, the relay will compute the
-full routing index.  A routing index is a mapping from
+full routing index.  Every routing index is a mapping from
 index position ranges (represented as 2-tuples) to relays, where the
 relays are represented as ENDIVERouterData members of the ENDIVE.  The
 routing index must map every possible value of the index to exactly one
@@ -248,7 +248,7 @@ derivatives.
 ### Building a SNIPLocation
 
 After computing all the indices in an IndexGroups, relays combine
-them into a series of SNIPLocation objects. Each SNIPLocation should
+them into a series of SNIPLocation objects. Each SNIPLocation
 MUST contain all the IndexId => IndexRange entries that point to a
 given ENDIVERouterData, for the IndexIds listed in an IndexGroup.
 
@@ -266,14 +266,14 @@ given ENDIVERouterData, for the IndexIds listed in an IndexGroup.
           Let R[idx][ID] = (LO, HI).
 
 SNIPLocation objects are thus organized in the order in which they will
-appear in the Merkle tree: that is, sorted by the index of their
+appear in the Merkle tree: that is, sorted by the position of their
 corresponding ENDIVERouterData.
 
 Because SNIPLocation objects are signed, they must be encoded as "canonical"
 cbor, according to section 3.9 of RFC 7049.
 
 If R[idx] is {} (the empty map) for any given idx, then no SNIP will be
-generated for the SNIPRouterData at that index for this index group.
+generated for the SNIPRouterData at that routing index for this index group.
 
 ## Computing truncated SNIPRouterData.
 

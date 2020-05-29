@@ -76,56 +76,58 @@ These extensions are defined by this proposal:
 
   [02] -- Full_SNIP -- an entire SNIP that was used in an attempt to
           extend the circuit.  This must match the client's provided
-          index.
+          index position.
 
   [03] -- Extra_SNIP -- an entire SNIP that was not used to extend
           the circuit, but which the client requested anyway.  This
           can be sent back from the extending relay when the client
-          specifies multiple indices.
+          specifies multiple index positions, or uses a nonzero "nth" value
+          in their `snip_index_pos` link specifier.
 
-  [04] -- SNIP_Request -- a 32-bit index number, or a single zero
+  [04] -- SNIP_Request -- a 32-bit index position, or a single zero
           byte, sent away from the client.  If the byte is 0, the
           originator does not want a SNIP.  Otherwise, the
           originator does want a SNIP containing the router and the
           specified index.  Other values are unspecified.
 
-          By default, EXTENDED2 cells are sent with a SNIP iff the
-          EXTENDED2 cell used a snip_index link specifier, and
-          CREATED2 cells are not sent with a SNIP.
+By default, EXTENDED2 cells are sent with a SNIP iff the EXTENDED2
+cell used a `snip_index_pos` link specifier, and CREATED2 cells are
+not sent with a SNIP.
 
 
 ### New link specifiers
 
-We add a new link specifier type [XX hex id here] for a router
-index, using the following coding for its contents:
+We add a new link specifier type for a router index, using the
+following coding for its contents:
 
     /* Using trunnel syntax here. */
-    struct snip_index {
+    struct snip_index_pos {
         u32 index_id; // which index is it?
-        u8 nth; // how many indices should be skipped/included?
-        u8 index[]; // extends to the end of the link specifier.
+        u8 nth; // how many SNIPs should be skipped/included?
+        u8 index_pos[]; // extends to the end of the link specifier.
     }
 
-The "index" field can be longer or shorter than the actual width of the
-router index.  If it is too long, it is truncated.  If it is too short, it is
-extended with zero-valued byte.
+The `index_pos` field can be longer or shorter than the actual width of
+the router index.  If it is too long, it is truncated.  If it is too
+short, it is extended with zero-valued bytes.
 
 Any number of these link specifiers may appear in an EXTEND cell.
 If there is more then one, then they should appear in order of
 client preference; the extending relay may extend to any of the
 listed routers.
 
-This link specifier SHOULD NOT be used along with IPv4, IPv6, RSA ID, or
-Ed25519 ID link specifiers.  Relays receiving such a link along with
-a snip_index link specifier SHOULD reject the entire EXTEND request.
+This link specifier SHOULD NOT be used along with IPv4, IPv6, RSA
+ID, or Ed25519 ID link specifiers.  Relays receiving such a link
+specifier along with a `snip_index_pos` link specifier SHOULD reject
+the entire EXTEND request.
 
 If `nth` is nonzero, then link specifier means "the n'th SNIP after
-the one defined by the SNIP index."  A relay MAY reject this request
-if `nth` is greater than 4.  If the relay does not reject this
-request, then it MUST include all snips between `index` and the one
-that was actually used in an Extra_Snip extension.  (Otherwise, the
-client would not be able to verify that it had gotten the correct
-SNIP.)
+the one defined by the SNIP index position."  A relay MAY reject
+this request if `nth` is greater than 4.  If the relay does not
+reject this request, then it MUST include all snips between
+`index_pos` and the one that was actually used in an Extra_Snip
+extension.  (Otherwise, the client would not be able to verify that
+it had gotten the correct SNIP.)
 
 > I've avoided use of CBOR for these types, under the assumption that we'd
 > like to use CBOR for directory stuff, but no more.  We already have
@@ -172,8 +174,8 @@ type.
 
 ## New relay behavior on EXTEND and CREATE failure.
 
-If an EXTEND2 cell based on an index fails, the relay should not
-close the circuit, but should instead send back a TRUNCATED cell
+If an EXTEND2 cell based on an routing index fails, the relay should
+not close the circuit, but should instead send back a TRUNCATED cell
 containing the SNIP in an extension.
 
 If a CREATE2 cell fails and a SNIP was requested, then instead of

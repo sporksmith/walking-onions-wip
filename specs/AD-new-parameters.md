@@ -19,11 +19,13 @@ size.
 
 From section 7:
 
-* `hsv2-index-bytes` -- bytes to use when sending an hsv2 index to look up a
-  hidden service directory.  Min: 1, Max: 40. Default: 4.
+* `hsv2-index-bytes` -- how many bytes to use when sending an hsv2 index
+  position to look up a hidden service directory.  Min: 1,
+  Max: 40. Default: 4.
 
-* `hsv3-index-bytes` -- bytes to use when sending an hsv3 index to look up a
-  hidden service directory.  Min: 1, Max: 128. Default: 4.
+* `hsv3-index-bytes` -- how many bytes to use when sending an hsv3 index
+  position to look up a hidden service directory.  Min: 1,
+  Max: 128. Default: 4.
 
 * `hsv3-intro-legacy-fields` -- include legacy fields in service descriptors.
   Min: 0. Max: 1. Default: 1.

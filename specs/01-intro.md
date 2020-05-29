@@ -88,7 +88,7 @@ Section 4 describes how relays fetch and reconstruct ENDIVEs from
 the directory authorities.
 
 Section 5 has the necessary changes to Tor's circuit extension
-protocol so that clients can extend to relays by index.
+protocol so that clients can extend to relays by index position.
 
 Section 6 describes new behaviors for clients as they use Walking
 Onions, to retain existing Tor functionality for circuit construction.

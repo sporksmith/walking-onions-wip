@@ -653,12 +653,12 @@ description of how the vote is to be conducted, or both.
         * tstr => any,
     }
 
-    ; An indexsection says how we think indices should be built.
+    ; An indexsection says how we think routing indices should be built.
     IndexSection = {
         * IndexId => bstr .cbor [ IndexGroupId, GenericIndexRule ],
     }
     IndexGroupId = uint
-    ; A mechanism for building a single index.  Actual values need to
+    ; A mechanism for building a single routing index.  Actual values need to
     ; be within RecognizedIndexRule or the authority can't complete the
     ; consensus.
     GenericIndexRule = {
@@ -944,8 +944,8 @@ To compute the signature nonce, use the signature digest algorithm
 to compute the digest of each input vote body, sort those digests
 lexicographically, and concatenate and hash those digests again.
 
-Indices are built according to named IndexRules, and grouped accoring to
-fields in the meta section.  See "Constructing Indices" below.
+Routing indices are built according to named IndexRules, and grouped
+according to fields in the meta section.  See "Constructing Indices" below.
 
 > (At this point extra fields may be copied from the Meta section of
 > each RelayInfo into the ENDIVERouterData depending on the meta

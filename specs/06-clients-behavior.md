@@ -9,15 +9,16 @@ wWlking Onions design.
 
 ## Bootstrapping and guard selection
 
-When a client first starts running, it has no guards on the Tor network,
-and therefore can't start building circuits immediately.  To produce a
-list of possible guards, the client begins connecting to one or more
-fallback directories on their ORPorts, and building circuits through
-them.  These are 3-hop circuits.  The first hop of each circuit is the
-fallback directory; the second and third hops are chosen from the Middle
-index.  At the third hop, the client then sends an informational request
-for a guard's SNIP.  This informational request is an EXTEND2 cell with
-handshake type NIL, using a random spot on the Guard index.
+When a client first starts running, it has no guards on the Tor
+network, and therefore can't start building circuits immediately.
+To produce a list of possible guards, the client begins connecting
+to one or more fallback directories on their ORPorts, and building
+circuits through them.  These are 3-hop circuits.  The first hop of
+each circuit is the fallback directory; the second and third hops
+are chosen from the Middle routing index.  At the third hop, the
+client then sends an informational request for a guard's SNIP.  This
+informational request is an EXTEND2 cell with handshake type NIL,
+using a random spot on the Guard routing index.
 
 Each such request yields a single SNIP that the client will store.
 These SNIPs, in the order in which they were _requested_, will form the
@@ -51,9 +52,9 @@ public key for the bridge.  Bridges behave like guards, except that they
 are not listed in any directory or ENDIVE, and so cannot prove
 membership when the client connects to them.
 
-On the first circuit through each channel to a bridge, the client asks that
-bridge for a SNIP listing itself in the `Self` index.  The bridge responds
-with a self-created unsigned SNIP:
+On the first circuit through each channel to a bridge, the client
+asks that bridge for a SNIP listing itself in the `Self` routing
+index.  The bridge responds with a self-created unsigned SNIP:
 
      ; This is only valid when received on an authenticated connection
      ; to a bridge.
@@ -79,10 +80,11 @@ UnsignedSNIP on future attempts to connect to the bridge.
 
 ## Finding relays by exit policy
 
-To find a relay by exit policy, clients might choose the exit index
-corresponding to the exit port they want to use.  This has negative privacy
-implications, however, since the middle node discovers what kind of exit
-traffic the client wants to use.  Instead, we support two other options.
+To find a relay by exit policy, clients might choose the exit
+routing index corresponding to the exit port they want to use.  This
+has negative privacy implications, however, since the middle node
+discovers what kind of exit traffic the client wants to use.
+Instead, we support two other options.
 
 First, clients may build anonymous three-hop circuits and then use those
 circuits to request the SNIPs that they will use for their exits.  This
@@ -94,8 +96,8 @@ so, they may include a new flag in the begin cell, "DVS" to enable
 Delegated Verifiable Selection.  As described in the Walking Onions
 paper, DVS allows a relay that doesn't support the requested port to
 instead send the client the SNIP of a relay that does.  (In the paper,
-the relay uses a digest of previous messages to decide which index to
-use: Instead, we have the client send an index field.)
+the relay uses a digest of previous messages to decide which routing
+index to use: Instead, we have the client send an index field.)
 
 This requires changes to the BEGIN and END cell formats.  After the
 "flags" field in BEGIN cells, we add an extension mechanism:
@@ -107,7 +109,7 @@ This requires changes to the BEGIN and END cell formats.  After the
         struct extension exts[n_extensions];
     }
 
-We allow the `snip_index` link specifier type to appear as a begin
+We allow the `snip_index_pos` link specifier type to appear as a begin
 extension.
 
 END cells will need to have a new format that supports.  This format is
@@ -161,8 +163,9 @@ Clients SHOULD discard a circuit if, after it has been built, they find
 that it contains the same relay twice, or it contains more than one
 relay from the same family or from the same subnet.
 
-Clients MAY remember the SNIPs they have received, and for some the time that
-the SNIP is maximally recent, not choose any index that would violate a path
+Clients MAY remember the SNIPs they have received, and for some the
+time that the SNIP is maximally recent, not choose any index
+position corresponding to a SNIP that would violate a path
 restriction.
 
 > NOTE: We should continue to monitor the fraction of paths that are
@@ -172,7 +175,7 @@ restriction.
 
 > FUTURE WORK: It might be a good idea, if these restrictions truly are
 > 'universal', for relays to have a way to say "You wouldn't want that
-> index; I am giving you the next one in sequence" and send back both
+> SNIP; I am giving you the next one in sequence" and send back both
 > SNIPs.  This would need some signaling in the EXTEND/EXTENDED cells.
 
 ## Client-configured path restrictions
@@ -196,11 +199,12 @@ example, if the user has a EntryNodes restriction that contains only a
 small group of relays by exact IP address, the client can connect or
 extend to one of those addresses specifically.
 
-If we decide IP ranges are important, that IP addresses without ports
-are important, or that key specifications are important, we can add
-indices that list relays by IP, by RSAId, or by Ed25519 Id.  Clients
-could then use those indices to remotely retrieve SNIPs, and then use
-those SNIPs to connect to their selected relays.
+If we decide IP ranges are important, that IP addresses without
+ports are important, or that key specifications are important, we
+can add routing indices that list relays by IP, by RSAId, or by
+Ed25519 Id.  Clients could then use those indices to remotely
+retrieve SNIPs, and then use those SNIPs to connect to their
+selected relays.
 
 > Future work: we need to decide how many of the above functions to actually
 > support.

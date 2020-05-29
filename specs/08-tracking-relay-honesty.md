@@ -11,11 +11,11 @@ Here we discuss several ways to mitigate this kind attack.
 ## Defense: index stability
 
 First, the voting process should be designed such that relays do not
-needlessly move around the index.  For example, it would -not- be
-appropriate to add an index type whose value is computed by first
-putting the relays into a pseudorandom order.  Instead, index voting
-should be deterministic and tend to give similar outputs for similar
-inputs.
+needlessly move around the routing index.  For example, it would
+_not_ be appropriate to add an index type whose value is computed by
+first putting the relays into a pseudorandom order.  Instead, index
+voting should be deterministic and tend to give similar outputs for
+similar inputs.
 
 This proposal tries to achieve this property in its index voting
 algorithms.  We should measure the degree to which we succeed over
@@ -24,9 +24,9 @@ particular time, and sampling several points for each index to see
 how many distinct relays are listed at each point, across all valid
 ENDIVEs.
 
-We do not need this stability property for indices whose purpose is
-nonrandomized relay selection, such as those indices used for onion
-service directories.
+We do not need this stability property for routing indices whose
+purpose is nonrandomized relay selection, such as those indices used
+for onion service directories.
 
 ## Defense: enforced monotonicity
 
