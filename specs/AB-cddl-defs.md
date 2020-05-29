@@ -1,5 +1,5 @@
 
-# Appendix: More cddl definions
+## Appendix B: More cddl definions
 
     ; These definitions are used throughout the rest of the
     ; proposal

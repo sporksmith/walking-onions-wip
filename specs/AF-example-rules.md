@@ -1,5 +1,5 @@
 
-## Appendix: Example voting rules
+## Appendix F: Example voting rules
 
 Here we give a set of voting rules for the fields described in our initial
 VoteDocuments.

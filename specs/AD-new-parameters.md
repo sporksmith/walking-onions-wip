@@ -1,5 +1,5 @@
 
-## Appendix: New network parameters.
+## Appendix D: New network parameters.
 
 We introduce these network parameters:
 

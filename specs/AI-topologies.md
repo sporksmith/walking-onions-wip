@@ -1,4 +1,5 @@
-## Non-clique topologies with Walking Onions
+
+## Appendix I: Non-clique topologies with Walking Onions
 
 For future work, we can expand the Walking Onions design to
 accommodate network topologies where relays are divided into groups,

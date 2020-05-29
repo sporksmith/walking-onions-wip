@@ -1,5 +1,5 @@
 
-## Appendix -- new numbers to assign.
+## Appendix C: new numbers to assign.
 
 Relay commands:
 

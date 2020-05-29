@@ -1,5 +1,5 @@
 
-## Appendix: Choosing good clusters of exit policies
+## Appendix H: Choosing good clusters of exit policies
 
 With walking onions, we cannot easily support all the port
 combinations [*] that we currently allow in the "policy summaries"
