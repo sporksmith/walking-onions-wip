@@ -1011,14 +1011,6 @@ implementations should use an `X-Support-Diff-Formats` header.  The
 above format is designated "cbor-bindiff"; our existing format is
 called "ed".
 
-## Storage analysis
-
-XXXX
-
-## Bandwidth analysis
-
-XXXX
-
 ## Digests and parameters
 
 Here we give definitions for `H_leaf()` and `H_node()`, based on an

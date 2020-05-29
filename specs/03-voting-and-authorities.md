@@ -1024,13 +1024,3 @@ NetParams document, as the exit indices are in the `port-classes`
 field. (See also section 6 and appendix AH.)  If such a field needs
 to change, it also needs a migration method that allows clients with
 older and newer parameters documents to exist at the same time.
-
-## Bandwidth analysis
-
-XXXX
-
-## Analyzing voting rules
-
-> XXXX (of our past rule changes, which would have required alterations
-> here?)
-
