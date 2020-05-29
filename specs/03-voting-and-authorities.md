@@ -141,7 +141,6 @@ field, without having any preferred value for the field itself.
 ### Constants used with voting operations
 
 Many voting operations may be parameterized by an unsigned integer.
-In some cases the integers are constant, but in
 
 When we encode these constants, we encode them as short strings
 rather than as integers.
