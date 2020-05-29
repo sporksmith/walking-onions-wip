@@ -1,4 +1,5 @@
 
+<!-- Section A.6 --> <a id='SA.6'></a>
 ## Appendix F: Example voting rules
 
 Here we give a set of voting rules for the fields described in our initial

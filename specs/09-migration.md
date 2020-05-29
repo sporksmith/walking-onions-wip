@@ -1,4 +1,5 @@
 
+<!-- Section 9 --> <a id='S9'></a>
 # Migrating to Walking Onions
 
 This proposal is a major change in the Tor network that will
@@ -42,6 +43,7 @@ parameter. This parameter should NOT be a simple "on" or "off",
 however: it should be the minimum client version whose support for
 walking onions is believed to be correct.
 
+<!-- Section 9.1 --> <a id='S9.1'></a>
 ## Future work: migrating away from sedentary onions
 
 Once all clients are using walking onions, we can take a pass

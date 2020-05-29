@@ -1,4 +1,5 @@
 
+<!-- Section 8 --> <a id='S8'></a>
 # Tracking Relay honesty
 
 Our design introduces an opportunity for dishonest relay behavior:
@@ -8,6 +9,7 @@ routing index value.
 
 Here we discuss several ways to mitigate this kind attack.
 
+<!-- Section 8.1 --> <a id='S8.1'></a>
 ## Defense: index stability
 
 First, the voting process should be designed such that relays do not
@@ -28,6 +30,7 @@ We do not need this stability property for routing indices whose
 purpose is nonrandomized relay selection, such as those indices used
 for onion service directories.
 
+<!-- Section 8.2 --> <a id='S8.2'></a>
 ## Defense: enforced monotonicity
 
 Once an honest relay has received an ENDIVE, it has no reason to
@@ -44,6 +47,7 @@ have received from each of their guards, and MAY track the most
 recent SNIP timestamps that they have received from other relays as
 well.
 
+<!-- Section 8.3 --> <a id='S8.3'></a>
 ## Defense: limiting ENDIVE variance within the network.
 
 The primary motivation for allowing long (de facto) lifespans on

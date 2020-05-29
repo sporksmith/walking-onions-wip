@@ -1,4 +1,5 @@
 
+<!-- Section A.2 --> <a id='SA.2'></a>
 ## Appendix B: More cddl definions
 
     ; These definitions are used throughout the rest of the

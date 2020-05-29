@@ -1,4 +1,5 @@
 
+<!-- Section A.7 --> <a id='SA.7'></a>
 ## Appendix G: A list of routing indices
 
 Middle -- general purpose index for use when picking middle hops in

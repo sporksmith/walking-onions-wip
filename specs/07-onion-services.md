@@ -1,3 +1,4 @@
+<!-- Section 7 --> <a id='S7'></a>
 # Using and providing onion services with Walking Onions
 
 Both live versions of the onion service design rely on a ring of
@@ -15,6 +16,7 @@ date that is potentially valid. We call these `hsv3-early` and
 Beyond the use of these indices, however, there are other steps that
 clients and services need to take in order to maintain their privacy.
 
+<!-- Section 7.1 --> <a id='S7.1'></a>
 ## Finding HSDirs
 
 When a client or service wants to contact an HSDir, it SHOULD do so
@@ -29,6 +31,7 @@ Instead, the client or service SHOULD truncate the identifier to a
 number of bytes equal to the network parameter `hsv2-index-bytes` or
 `hsv3-index-bytes` respectively.  (See Appendix C.)
 
+<!-- Section 7.2 --> <a id='S7.2'></a>
 ## SNIPs for introduction points
 
 When services select an introduction point, they should include the
@@ -62,6 +65,7 @@ parameters: `hsv3-intro-snip` and `hsv3-intro-legacy-fields`.
 Clients should use these fields only when walking onion support is
 enabled; see section 09.
 
+<!-- Section 7.3 --> <a id='S7.3'></a>
 ## SNIPs for rendezvous points
 
 When a client chooses a rendezvous point for a v3 onion service, it
@@ -91,6 +95,7 @@ In order to prevent partitioning, services SHOULD NOT advertise
 "hsv3-rend-service-snip" is set to 1.  Clients SHOULD NOT use this
 field unless "hsv3-rend-client-snip" is set to 1.
 
+<!-- Section 7.4 --> <a id='S7.4'></a>
 ## TAP keys and where to find them
 
 If v2 hidden services are still supported when walking onions arrive

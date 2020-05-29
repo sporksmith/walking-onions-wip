@@ -1,4 +1,5 @@
 
+<!-- Section A.5 --> <a id='SA.5'></a>
 ## Appendix E: Semantic sorting for CBOR values.
 
 Some voting operations assume a partial ordering on CBOR values.  We define

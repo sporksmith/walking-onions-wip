@@ -1,4 +1,5 @@
 
+<!-- Section A.8 --> <a id='SA.8'></a>
 ## Appendix H: Choosing good clusters of exit policies
 
 With walking onions, we cannot easily support all the port

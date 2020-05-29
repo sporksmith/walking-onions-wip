@@ -1,3 +1,4 @@
+<!-- Section 1 --> <a id='S1'></a>
 # Introduction: A Specification for Walking Onions
 
 In Proposal 300, I introduced Walking Onions, a design for scaling the
@@ -10,6 +11,7 @@ implementations. In this introduction, I'll start by summarizing the
 key ideas of Walking Onions, and then outline how the rest of this
 proposal will be structured.
 
+<!-- Section 1.1 --> <a id='S1.1'></a>
 ## Remind me about Walking Onions again?
 
 With Tor's current design, every client downloads and refreshes a
@@ -67,6 +69,7 @@ proposal 300.  For more detailed analysis and discussion, see
 "Walking Onions: Scaling Anonymity Networks while Protecting Users"
 by Komlo, Mathewson, and Goldberg.
 
+<!-- Section 1.2 --> <a id='S1.2'></a>
 ## The rest of this document
 
 This proposal is unusually long, since Walking Onions touches on many
@@ -104,6 +107,7 @@ system robust against transient authority failures.
 Section 9 closes with a discussion of how to migrate from the
 existing Tor design to the new system proposed here.
 
+<!-- Section 1.2.1 --> <a id='S1.2.1'></a>
 ### Appendices
 
 Additionally, this proposal has several appendices:
@@ -134,6 +138,7 @@ the group of ports that they support.
 
 Appendix Z closes with acknowledgments.
 
+<!-- Section 1.2.2 --> <a id='S1.2.2'></a>
 ### Related proposals
 
 The following proposals are not part of the Walking Onions proposal,
