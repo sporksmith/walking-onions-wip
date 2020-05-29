@@ -55,7 +55,7 @@ diffs.
 We should preserve (and loosen) our policy of requiring only loose
 time synchronization between clients and relays.  Where possible,
 we'll make the permitted skew explicit in the protocol: for example,
-rather than saying "you can except a document 10 minutes before it
+rather than saying "you can accept a document 10 minutes before it
 is valid", we will just make the validity interval start 10 minutes
 earlier.
 
