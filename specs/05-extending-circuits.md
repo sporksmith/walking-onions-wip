@@ -214,24 +214,3 @@ extra bytes at the end of cells.
 > ALTERNATIVE: We could specify a more complicated padding
 > mechanism, eg. 32 bytes of zeros then random bytes.
 
-## Relay behavior: responding to CREATE
-
-XXX
-
-## Relay behavior: responding to EXTEND
-XXX
-
-
-## Example Client operations: Extending by property and index.
-
-XXXX
-
-## Example Client operations: Extending to a relay with known SNIP
-
-XXXX
-
-## Example Client operations: Fetching a SNIP for a target index
-
-XXXX
-
-
